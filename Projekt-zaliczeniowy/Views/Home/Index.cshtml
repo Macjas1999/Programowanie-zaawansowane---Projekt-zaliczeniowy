@@ -1,8 +1,106 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "System Korepetycji Online";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container">
+    @if (User.Identity.IsAuthenticated)
+    {
+        @if (User.IsInRole("Admin"))
+        {
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Zarządzanie użytkownikami</h5>
+                            <p class="card-text">Zarządzaj kontami uczniów i nauczycieli.</p>
+                            <a asp-controller="Admin" asp-action="Users" class="btn btn-primary">Przejdź</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Raporty</h5>
+                            <p class="card-text">Przeglądaj raporty i statystyki.</p>
+                            <a asp-controller="Admin" asp-action="Reports" class="btn btn-primary">Przejdź</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (User.IsInRole("Teacher"))
+        {
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Moje zajęcia</h5>
+                            <p class="card-text">Zarządzaj swoimi lekcjami.</p>
+                            <a asp-controller="Teacher" asp-action="Sessions" class="btn btn-primary">Przejdź</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Dostępność</h5>
+                            <p class="card-text">Ustaw swój harmonogram.</p>
+                            <a asp-controller="Teacher" asp-action="Availability" class="btn btn-primary">Przejdź</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else // Student
+        {
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Moje lekcje</h5>
+                            <p class="card-text">Przeglądaj swoje lekcje.</p>
+                            <a asp-controller="Student" asp-action="Sessions" class="btn btn-primary">Przejdź</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Znajdź korepetytora</h5>
+                            <p class="card-text">Wyszukaj i zarezerwuj zajęcia.</p>
+                            <a asp-controller="Student" asp-action="FindTutor" class="btn btn-primary">Przejdź</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Płatności</h5>
+                            <p class="card-text">Zarządzaj swoimi płatnościami.</p>
+                            <a asp-controller="Student" asp-action="Payments" class="btn btn-primary">Przejdź</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="text-center">
+            <h1 class="display-4">Witaj w systemie korepetycji online</h1>
+            <p>Zaloguj się lub zarejestruj, aby rozpocząć.</p>
+            <div class="mt-4">
+                <a asp-controller="Account" asp-action="Login" class="btn btn-primary mx-2">Zaloguj się</a>
+                <div class="btn-group mx-2">
+                    <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
+                        Zarejestruj się
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" asp-controller="Account" asp-action="Register" asp-route-userType="Student">Jako uczeń</a>
+                        <a class="dropdown-item" asp-controller="Account" asp-action="Register" asp-route-userType="Teacher">Jako nauczyciel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>

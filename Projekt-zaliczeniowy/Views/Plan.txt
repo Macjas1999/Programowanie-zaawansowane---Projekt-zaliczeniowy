@@ -1,0 +1,24 @@
+﻿Views/
+├── Home/
+│   ├── Index.cshtml
+│   └── About.cshtml
+├── Tutor/
+│   ├── Index.cshtml
+│   ├── Details.cshtml
+│   ├── Schedule.cshtml
+│   └── Availability.cshtml
+├── Student/
+│   ├── Dashboard.cshtml
+│   ├── BookLesson.cshtml
+│   └── MyLessons.cshtml
+├── Lesson/
+│   ├── Create.cshtml
+│   ├── Details.cshtml
+│   └── Cancel.cshtml
+├── Payment/
+│   ├── Process.cshtml
+│   └── History.cshtml
+└── Shared/
+    ├── _Layout.cshtml
+    ├── _LoginPartial.cshtml
+    └── _Navigation.cshtml

@@ -6,6 +6,6 @@
         public string Name { get; set; }
         public string Description { get; set; }
         public string Level { get; set; }
-        public List<Tutor> Tutors { get; set; }
+        public List<ApplicationUser> Teachers { get; set; }
     }
 }
