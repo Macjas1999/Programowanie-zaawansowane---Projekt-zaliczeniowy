@@ -17,4 +17,4 @@ namespace Projekt_zaliczeniowy.Models.ViewModels
         public bool RememberMe { get; set; }
     }
 }
-}
+

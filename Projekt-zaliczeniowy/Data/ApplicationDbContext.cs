@@ -1,104 +1,205 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Projekt_zaliczeniowy.Models;
-using Microsoft.AspNetCore.Identity;
 
-namespace Projekt_zaliczeniowy.Data
+//Appuser
+public class ApplicationUser : IdentityUser
 {
-    public class ApplicationDbContext : IdentityDbContext<IdentityUser>
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public UserType UserType { get; set; }
+    public string? Description { get; set; }
+    public decimal? HourlyRate { get; set; }
+    public virtual ICollection<Subject> TeachingSubjects { get; set; }
+    public virtual ICollection<Lesson> Sessions { get; set; }
+    public virtual ICollection<Availability> AvailableSlots { get; set; }
+    public virtual ICollection<Review> ReceivedReviews { get; set; }
+    public virtual ICollection<Review> GivenReviews { get; set; }
+
+    public ApplicationUser()
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
-        {
-        }
+        TeachingSubjects = new HashSet<Subject>();
+        Sessions = new HashSet<Lesson>();
+        AvailableSlots = new HashSet<Availability>();
+        ReceivedReviews = new HashSet<Review>();
+        GivenReviews = new HashSet<Review>();
+    }
+}
 
-        public DbSet<Tutor> Tutors { get; set; }
-        public DbSet<Student> Students { get; set; }
-        public DbSet<Subject> Subjects { get; set; }
-        public DbSet<Lesson> Lessons { get; set; }
-        public DbSet<Availability> Availabilities { get; set; }
-        public DbSet<Payment> Payments { get; set; }
-        public DbSet<Review> Reviews { get; set; }
+// Subject
+public class Subject
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public virtual ICollection<ApplicationUser> Teachers { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
+    public Subject()
+    {
+        Teachers = new HashSet<ApplicationUser>();
+    }
+}
 
-            // Konfiguracja dziedziczenia dla Tutor i Student
-            modelBuilder.Entity<ApplicationUser>()
-                .HasMany(u => u.TeachingSubjects)
-                .WithMany(s => s.Teachers);
+// Lesson
+public class Lesson
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string TeacherId { get; set; }
+    public string StudentId { get; set; }
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+    public decimal Price { get; set; }
+    public LessonStatus Status { get; set; }
+    public string? Notes { get; set; }
 
-            // Konfiguracja relacji dla Lesson
-            modelBuilder.Entity<Lesson>()
-                .HasOne(s => s.Teacher)
-                .WithMany(u => u.Sessions)
-                .HasForeignKey(s => s.TeacherId);
+    public virtual ApplicationUser Teacher { get; set; }
+    public virtual ApplicationUser Student { get; set; }
+    public virtual Payment Payment { get; set; }
+}
 
-            modelBuilder.Entity<Lesson>()
-                .HasOne(s => s.Student)
-                .WithMany()
-                .HasForeignKey(s => s.StudentId);
+public enum LessonStatus
+{
+    Scheduled,
+    Completed,
+    Cancelled,
+    InProgress
+}
 
-            // Konfiguracja relacji dla Availability
-            modelBuilder.Entity<Availability>()
-                .HasOne(a => a.Tutor)
-                .WithMany(t => t.AvailableSlots)
-                .HasForeignKey("TutorId");
+// Availability
+public class Availability
+{
+    public int Id { get; set; }
+    public string TutorId { get; set; }
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+    public bool IsBooked { get; set; }
 
-            // Konfiguracja relacji dla Payment
-            modelBuilder.Entity<Payment>()
-                .HasOne(p => p.Lesson)
-                .WithOne(l => l.Payment)
-                .HasForeignKey<Payment>("LessonId");
+    public virtual ApplicationUser Tutor { get; set; }
+}
 
-            // Konfiguracja relacji dla Review
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.Tutor)
-                .WithMany(t => t.Reviews)
-                .HasForeignKey("TutorId")
-                .OnDelete(DeleteBehavior.Restrict);
+// Payment
+public class Payment
+{
+    public int Id { get; set; }
+    public int LessonId { get; set; }
+    public decimal Amount { get; set; }
+    public DateTime PaymentDate { get; set; }
+    public PaymentStatus Status { get; set; }
+    public string? TransactionId { get; set; }
 
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.Student)
-                .WithMany(s => s.ReviewsGiven)
-                .HasForeignKey("StudentId")
-                .OnDelete(DeleteBehavior.Restrict);
+    public virtual Lesson Lesson { get; set; }
+}
 
-            // Dodatkowe konfiguracje właściwości
-            modelBuilder.Entity<Payment>()
-                .Property(p => p.Amount)
-                .HasColumnType("decimal(18,2)");
+public enum PaymentStatus
+{
+    Pending,
+    Completed,
+    Failed,
+    Refunded
+}
 
-            modelBuilder.Entity<Tutor>()
-                .Property(t => t.HourlyRate)
-                .HasColumnType("decimal(18,2)");
+// Review
+public class Review
+{
+    public int Id { get; set; }
+    public string TutorId { get; set; }
+    public string StudentId { get; set; }
+    public int Rating { get; set; }
+    public string Comment { get; set; }
+    public DateTime CreateDate { get; set; }
 
-            modelBuilder.Entity<Lesson>()
-                .Property(l => l.Price)
-                .HasColumnType("decimal(18,2)");
+    public virtual ApplicationUser Tutor { get; set; }
+    public virtual ApplicationUser Student { get; set; }
+}
 
-            // Indeksy
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Email)
-                .IsUnique();
+// ApplicationDbContext
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+{
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : base(options)
+    {
+    }
 
-            modelBuilder.Entity<Lesson>()
-                .HasIndex(l => l.StartTime);
+    public DbSet<Subject> Subjects { get; set; }
+    public DbSet<Lesson> Lessons { get; set; }
+    public DbSet<Availability> Availabilities { get; set; }
+    public DbSet<Payment> Payments { get; set; }
+    public DbSet<Review> Reviews { get; set; }
 
-            modelBuilder.Entity<Payment>()
-                .HasIndex(p => p.PaymentDate);
-        }
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseSqlServer("Name=DefaultConnection");
-            }
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
 
-#if DEBUG
-            optionsBuilder.EnableSensitiveDataLogging();
-#endif
-        }
+        // Konfiguracja relacji many-to-many między User a Subject
+        modelBuilder.Entity<ApplicationUser>()
+            .HasMany(u => u.TeachingSubjects)
+            .WithMany(s => s.Teachers)
+            .UsingEntity(j => j.ToTable("UserSubjects"));
+
+        // Konfiguracja relacji dla Lesson
+        modelBuilder.Entity<Lesson>()
+            .HasOne(l => l.Teacher)
+            .WithMany(u => u.Sessions)
+            .HasForeignKey(l => l.TeacherId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Lesson>()
+            .HasOne(l => l.Student)
+            .WithMany()
+            .HasForeignKey(l => l.StudentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Konfiguracja relacji dla Availability
+        modelBuilder.Entity<Availability>()
+            .HasOne(a => a.Tutor)
+            .WithMany(t => t.AvailableSlots)
+            .HasForeignKey(a => a.TutorId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Konfiguracja relacji dla Payment
+        modelBuilder.Entity<Payment>()
+            .HasOne(p => p.Lesson)
+            .WithOne(l => l.Payment)
+            .HasForeignKey<Payment>(p => p.LessonId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Konfiguracja relacji dla Review
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.Tutor)
+            .WithMany(t => t.ReceivedReviews)
+            .HasForeignKey(r => r.TutorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.Student)
+            .WithMany(s => s.GivenReviews)
+            .HasForeignKey(r => r.StudentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Konfiguracja typów decimal
+        modelBuilder.Entity<Payment>()
+            .Property(p => p.Amount)
+            .HasColumnType("decimal(18,2)");
+
+        modelBuilder.Entity<ApplicationUser>()
+            .Property(t => t.HourlyRate)
+            .HasColumnType("decimal(18,2)");
+
+        modelBuilder.Entity<Lesson>()
+            .Property(l => l.Price)
+            .HasColumnType("decimal(18,2)");
+
+        // Indeksy
+        modelBuilder.Entity<ApplicationUser>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
+
+        modelBuilder.Entity<Lesson>()
+            .HasIndex(l => l.StartTime);
+
+        modelBuilder.Entity<Payment>()
+            .HasIndex(p => p.PaymentDate);
     }
 }

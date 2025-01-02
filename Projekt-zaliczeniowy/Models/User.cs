@@ -10,7 +10,7 @@ namespace Projekt_zaliczeniowy.Models
         public string? Description { get; set; }
         public decimal? HourlyRate { get; set; }
         public List<Subject> TeachingSubjects { get; set; }
-        public List<TutoringSession> Sessions { get; set; }
+        public List<Lesson> Sessions { get; set; }
     }
 
     public enum UserType

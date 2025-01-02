@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Projekt_zaliczeniowy.Models;
+using Projekt_zaliczeniowy.Models.ViewModels;
 
 namespace Projekt_zaliczeniowy.Controllers
 {
