@@ -12,6 +12,9 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddAuthorization(options => options.AddPolicy("authAdmin", policy => policy.RequireRole("Administrator")));
+builder.Services.AddAuthorization(options => options.AddPolicy("authKorepetytor", policy => policy.RequireRole("Korepetytor")));
+builder.Services.AddAuthorization(options => options.AddPolicy("authUzytkownik", policy => policy.RequireRole("Uzytkownik")));
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();

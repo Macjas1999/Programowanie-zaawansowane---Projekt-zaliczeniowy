@@ -58,7 +58,7 @@ namespace Projekt_zaliczeniowy.Controllers
         [HttpGet]
         public IActionResult Login()
         {
-            return View();
+            return View("Views/Account/Login.cshtml");
         }
 
         [HttpPost]
