@@ -1,26 +1,39 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Projekt_zaliczeniowy.Models;
 
 namespace Projekt_zaliczeniowy.Controllers
 {
     public class LessonController : Controller
     {
-        //public IActionResult Index()
-        //{
-        //    return View();
-        //}
+        public IActionResult LessonMenu()
+        {
+            return View();
+        }
+
+
+        [HttpGet]
         public IActionResult Create() // Tworzenie lekcji
         {
+            var lesson = new Lesson
+            {
+                Id = 1,
+
+            };
             return View();
         }
 
-        public IActionResult Details(int id) // Szczegóły lekcji
+        [HttpGet]
+        public IActionResult Cancel()
         {
             return View();
         }
 
-        public IActionResult Cancel(int id) // Anulowanie lekcji
+        [HttpGet]
+        public IActionResult Details(int id) // Assuming Details requires an ID
         {
-            return View();
+            // Fetch details using the ID
+            var lesson = new Lesson { Id = id, Name = "Sample Lesson" }; // Replace with actual data fetching
+            return View(lesson);
         }
     }
 }
