@@ -42,5 +42,9 @@ namespace Projekt_zaliczeniowy.Models.ViewModels
 
         [Display(Name = "Przedmioty nauczania")]
         public List<int>? SelectedSubjects { get; set; }
+
+        [Required]
+        [Display(Name = "Role")]
+        public string Role { get; set; } = "Uzytkownik"; // Default role
     }
 }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Projekt_zaliczeniowy.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,10 +12,27 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
-builder.Services.AddAuthorization(options => options.AddPolicy("authAdmin", policy => policy.RequireRole("Administrator")));
-builder.Services.AddAuthorization(options => options.AddPolicy("authKorepetytor", policy => policy.RequireRole("Korepetytor")));
-builder.Services.AddAuthorization(options => options.AddPolicy("authUzytkownik", policy => policy.RequireRole("Uzytkownik")));
+
+// Add role-based authorization policies
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Administrator"));
+    options.AddPolicy("RequireTutorRole", policy => policy.RequireRole("Korepetytor"));
+    options.AddPolicy("RequireUserRole", policy => policy.RequireRole("Uzytkownik"));
+});
+
+// Configure password requirements (optional - for development)
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequiredLength = 6;
+});
+
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();

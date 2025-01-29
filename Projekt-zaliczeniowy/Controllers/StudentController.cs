@@ -50,7 +50,7 @@ namespace Projekt_zaliczeniowy.Controllers
             return View(lessons);
         }
 
-        [Authorize(Roles = "Student")]
+        [Authorize(Roles = "authUzytkownik")]
         [HttpGet]
         public async Task<IActionResult> LessonDetails(int id)
         {
