@@ -12,7 +12,16 @@
         public LessonStatus Status { get; set; }
         public string? Notes { get; set; }
 
-        public ApplicationUser Teacher { get; set; }
-        public ApplicationUser Student { get; set; }
+        public virtual ApplicationUser Teacher { get; set; }
+        public virtual ApplicationUser Student { get; set; }
+        public virtual Payment Payment { get; set; }
+    }
+
+    public enum LessonStatus
+    {
+        Scheduled,
+        Completed,
+        Cancelled,
+        InProgress
     }
 }

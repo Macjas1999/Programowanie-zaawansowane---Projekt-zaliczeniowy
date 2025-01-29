@@ -5,7 +5,11 @@
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public string Level { get; set; }
-        public List<ApplicationUser> Teachers { get; set; }
+        public virtual ICollection<ApplicationUser> Teachers { get; set; }
+
+        public Subject()
+        {
+            Teachers = new HashSet<ApplicationUser>();
+        }
     }
 }

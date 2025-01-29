@@ -5,7 +5,7 @@
 <div class="container">
     @if (User.Identity.IsAuthenticated)
     {
-        @if (User.IsInRole("Admin"))
+        @if (User.IsInRole("Administrator"))
         {
             <div class="row">
                 <div class="col-md-4">
@@ -28,47 +28,47 @@
                 </div>
             </div>
         }
-        else if (User.IsInRole("Teacher"))
+        else if (User.IsInRole("Korepetytor"))
         {
             <div class="row">
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">Moje zajęcia</h5>
-                            <p class="card-text">Zarządzaj swoimi lekcjami.</p>
-                            <a asp-controller="Teacher" asp-action="Sessions" class="btn btn-primary">Przejdź</a>
+                            <h5 class="card-title">Panel główny</h5>
+                            <p class="card-text">Przejdź do panelu głównego korepetytora.</p>
+                            <a asp-controller="Teacher" asp-action="Index" class="btn btn-primary">Przejdź</a>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">Dostępność</h5>
-                            <p class="card-text">Ustaw swój harmonogram.</p>
-                            <a asp-controller="Teacher" asp-action="Availability" class="btn btn-primary">Przejdź</a>
+                            <h5 class="card-title">Kalendarz</h5>
+                            <p class="card-text">Zarządzaj swoim harmonogramem zajęć.</p>
+                            <a asp-controller="Teacher" asp-action="Calendar" class="btn btn-primary">Przejdź</a>
                         </div>
                     </div>
                 </div>
             </div>
         }
-        else // Student
+        else if (User.IsInRole("Uzytkownik"))
         {
             <div class="row">
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">Moje lekcje</h5>
-                            <p class="card-text">Przeglądaj swoje lekcje.</p>
-                            <a asp-controller="Student" asp-action="Sessions" class="btn btn-primary">Przejdź</a>
+                            <h5 class="card-title">Panel główny</h5>
+                            <p class="card-text">Przejdź do panelu głównego ucznia.</p>
+                            <a asp-controller="Student" asp-action="Index" class="btn btn-primary">Przejdź</a>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">Znajdź korepetytora</h5>
-                            <p class="card-text">Wyszukaj i zarezerwuj zajęcia.</p>
-                            <a asp-controller="Student" asp-action="GetTeacherSubjects" class="btn btn-primary">Przejdź</a>
+                            <h5 class="card-title">Kalendarz</h5>
+                            <p class="card-text">Zobacz swój harmonogram zajęć.</p>
+                            <a asp-controller="Student" asp-action="Calendar" class="btn btn-primary">Przejdź</a>
                         </div>
                     </div>
                 </div>
@@ -91,15 +91,7 @@
             <p>Zaloguj się lub zarejestruj, aby rozpocząć.</p>
             <div class="mt-4">
                 <a asp-controller="Account" asp-action="Login" class="btn btn-primary mx-2">Zaloguj się</a>
-                <div class="btn-group mx-2">
-                    <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
-                        Zarejestruj się
-                    </button>
-                    <div class="dropdown-menu">
-                        <a class="dropdown-item" asp-controller="Account" asp-action="Register" asp-route-userType="Student">Jako uczeń</a>
-                        <a class="dropdown-item" asp-controller="Account" asp-action="Register" asp-route-userType="Teacher">Jako nauczyciel</a>
-                    </div>
-                </div>
+                <a asp-controller="Account" asp-action="Register" class="btn btn-success mx-2">Zarejestruj się</a>
             </div>
         </div>
     }

@@ -1,18 +1,19 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Projekt_zaliczeniowy.Models;
 using Projekt_zaliczeniowy.Models.ViewModels;
 
 namespace Projekt_zaliczeniowy.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
 
         public AccountController(
-            UserManager<IdentityUser> userManager,
-            SignInManager<IdentityUser> signInManager,
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
             RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
@@ -31,10 +32,15 @@ namespace Projekt_zaliczeniowy.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new IdentityUser
+                var user = new ApplicationUser
                 {
                     UserName = model.Email,
                     Email = model.Email,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    UserType = model.Role == "Korepetytor" ? UserType.Korepetytor : 
+                              model.Role == "Administrator" ? UserType.Administrator : 
+                              UserType.Uzytkownik
                 };
 
                 var result = await _userManager.CreateAsync(user, model.Password);
@@ -97,7 +103,7 @@ namespace Projekt_zaliczeniowy.Controllers
                     return RedirectToAction("Index", "Home");
                 }
 
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                ModelState.AddModelError(string.Empty, "Nieprawidłowa próba logowania.");
             }
             return View(model);
         }

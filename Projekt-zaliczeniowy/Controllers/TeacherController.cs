@@ -2,9 +2,13 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Projekt_zaliczeniowy.Data;
+using Projekt_zaliczeniowy.Models;
+using Projekt_zaliczeniowy.Models.ViewModels;
 
 namespace Projekt_zaliczeniowy.Controllers
 {
+    [Authorize(Roles = "Korepetytor")]
     public class TeacherController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -21,34 +25,85 @@ namespace Projekt_zaliczeniowy.Controllers
             _logger = logger;
         }
 
-        [Authorize(Roles = "Teacher")]
+        public async Task<IActionResult> Index()
+        {
+            var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
+
+            var viewModel = new TeacherDashboardViewModel
+            {
+                UpcomingLessons = await _context.Lessons
+                    .Include(l => l.Student)
+                    .Where(l => l.TeacherId == currentUser.Id && 
+                               l.StartTime > DateTime.Now && 
+                               l.Status == LessonStatus.Scheduled)
+                    .OrderBy(l => l.StartTime)
+                    .Take(5)
+                    .ToListAsync(),
+
+                RecentLessons = await _context.Lessons
+                    .Include(l => l.Student)
+                    .Where(l => l.TeacherId == currentUser.Id && 
+                               l.StartTime <= DateTime.Now)
+                    .OrderByDescending(l => l.StartTime)
+                    .Take(5)
+                    .ToListAsync(),
+
+                Availabilities = await _context.Availabilities
+                    .Where(a => a.TutorId == currentUser.Id &&
+                               a.StartTime > DateTime.Now)
+                    .OrderBy(a => a.StartTime)
+                    .ToListAsync()
+            };
+
+            return View(viewModel);
+        }
+
         public async Task<IActionResult> Calendar(DateTime? date)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
+            var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
+
             var selectedDate = date ?? DateTime.Today;
             var startOfWeek = selectedDate.AddDays(-(int)selectedDate.DayOfWeek);
             var endOfWeek = startOfWeek.AddDays(7);
 
             var lessons = await _context.Lessons
                 .Include(l => l.Student)
-                .Include(l => l.Name)
                 .Where(l => l.TeacherId == currentUser.Id &&
                            l.StartTime >= startOfWeek &&
                            l.StartTime < endOfWeek)
                 .OrderBy(l => l.StartTime)
                 .ToListAsync();
 
+            var availabilities = await _context.Availabilities
+                .Where(a => a.TutorId == currentUser.Id &&
+                           a.StartTime >= startOfWeek &&
+                           a.StartTime < endOfWeek)
+                .OrderBy(a => a.StartTime)
+                .ToListAsync();
+
+            ViewBag.Availabilities = availabilities;
             return View(lessons);
         }
 
-        [Authorize(Roles = "Teacher")]
         [HttpGet]
         public async Task<IActionResult> LessonDetails(int id)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
+            var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
+
             var lesson = await _context.Lessons
                 .Include(l => l.Student)
-                .Include(l => l.Name)
                 .Include(l => l.Payment)
                 .FirstOrDefaultAsync(l => l.Id == id && l.TeacherId == currentUser.Id);
 
@@ -60,11 +115,15 @@ namespace Projekt_zaliczeniowy.Controllers
             return PartialView("_LessonDetails", lesson);
         }
 
-        [Authorize(Roles = "Teacher")]
         [HttpPost]
         public async Task<IActionResult> AddAvailability(DateTime date, int hour)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
+            var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
+
             var startTime = date.Date.AddHours(hour);
             var endTime = startTime.AddHours(1);
 
@@ -82,12 +141,17 @@ namespace Projekt_zaliczeniowy.Controllers
             return Json(new { success = true });
         }
 
-        [Authorize(Roles = "Teacher")]
         [HttpPost]
         public async Task<IActionResult> UpdateLessonStatus(int id, LessonStatus status)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
+            var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
+
             var lesson = await _context.Lessons
+                .Include(l => l.Payment)
                 .FirstOrDefaultAsync(l => l.Id == id && l.TeacherId == currentUser.Id);
 
             if (lesson == null)
@@ -98,11 +162,9 @@ namespace Projekt_zaliczeniowy.Controllers
             lesson.Status = status;
             if (status == LessonStatus.Completed)
             {
-                var payment = await _context.Payments
-                    .FirstOrDefaultAsync(p => p.LessonId == lesson.Id);
-                if (payment != null)
+                if (lesson.Payment != null)
                 {
-                    payment.Status = PaymentStatus.Completed;
+                    lesson.Payment.Status = PaymentStatus.Completed;
                 }
             }
 

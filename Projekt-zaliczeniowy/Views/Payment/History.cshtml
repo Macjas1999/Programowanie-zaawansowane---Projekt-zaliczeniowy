@@ -1,16 +1,17 @@
 ﻿@model IEnumerable<Projekt_zaliczeniowy.Models.Payment>
+@using Projekt_zaliczeniowy.Models
 
-<h2>Payment History</h2>
+<h2>Historia płatności</h2>
 
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>Date</th>
-            <th>Lesson</th>
-            <th>Amount</th>
-            <th>Method</th>
+            <th>Data</th>
+            <th>Lekcja</th>
+            <th>Kwota</th>
+            <th>Metoda płatności</th>
             <th>Status</th>
-            <th>Actions</th>
+            <th>Akcje</th>
         </tr>
     </thead>
     <tbody>
@@ -20,14 +21,14 @@
                 <td>@payment.PaymentDate.ToShortDateString()</td>
                 <td>@payment.Lesson.Name</td>
                 <td>@payment.Amount.ToString("C")</td>
-                <td>@payment.PaymentMethod</td>
+                <td>@payment.Method.ToString()</td>
                 <td>
-                    <span class="badge @(payment.Status == "Completed" ? "bg-success" : "bg-warning")">
+                    <span class="badge @(payment.Status == PaymentStatus.Completed ? "bg-success" : "bg-warning")">
                         @payment.Status
                     </span>
                 </td>
                 <td>
-                    <a asp-action="Details" asp-route-id="@payment.Id" class="btn btn-sm btn-info">Details</a>
+                    <a asp-action="Details" asp-route-id="@payment.Id" class="btn btn-sm btn-info">Szczegóły</a>
                 </td>
             </tr>
         }
@@ -35,5 +36,5 @@
 </table>
 
 <div class="mt-3">
-    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Back to Home</a>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Powrót</a>
 </div>

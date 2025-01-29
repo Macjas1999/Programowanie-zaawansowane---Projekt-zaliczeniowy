@@ -58,12 +58,13 @@
 
                                     @if (lesson != null)
                                     {
+                                        var student = lesson.Student as ApplicationUser;
                                         <td class="lesson-cell @GetLessonStatusClass(lesson.Status)"
                                             data-toggle="tooltip"
                                             data-placement="top"
                                             title="@GetLessonTooltip(lesson)">
                                             <div class="lesson-details">
-                                                <strong>@lesson.Student.FirstName @lesson.Student.LastName</strong><br />
+                                                <strong>@(student?.FirstName ?? "") @(student?.LastName ?? "")</strong><br />
                                                 <small>@lesson.Name</small>
                                             </div>
                                         </td>
@@ -186,8 +187,9 @@
         }
 
         function getLessonTooltip(lesson) {
-            return `Student: ${lesson.student.firstName} ${lesson.student.lastName}\n` +
-                   `Przedmiot: ${lesson.subject?.name}\n` +
+            const student = lesson.student;
+            return `Student: ${student?.firstName ?? ''} ${student?.lastName ?? ''}\n` +
+                   `Przedmiot: ${lesson.subject?.name ?? ''}\n` +
                    `Godzina: ${formatTime(lesson.startTime)} - ${formatTime(lesson.endTime)}`;
         }
 
@@ -240,7 +242,8 @@
 
     string GetLessonTooltip(Lesson lesson)
     {
-        return $"Student: {lesson.Student.FirstName} {lesson.Student.LastName}\n" +
+        var student = lesson.Student as ApplicationUser;
+        return $"Student: {student?.FirstName ?? ""} {student?.LastName ?? ""}\n" +
                $"Przedmiot: {lesson.Name}\n" +
                $"Godzina: {lesson.StartTime:HH:mm} - {lesson.EndTime:HH:mm}";
     }

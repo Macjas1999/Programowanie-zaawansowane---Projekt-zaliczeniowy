@@ -67,13 +67,14 @@
 
                                     @if (lesson != null)
                                     {
+                                        var teacher = lesson.Teacher as ApplicationUser;
                                         <td class="lesson-cell @GetLessonStatusClass(lesson.Status)"
                                             onclick="showLessonDetails(@lesson.Id)"
                                             data-toggle="tooltip"
                                             data-placement="top"
                                             title="@GetLessonTooltip(lesson)">
                                             <div class="lesson-details">
-                                                <strong>@lesson.Teacher.FirstName @lesson.Teacher.LastName</strong><br />
+                                                <strong>@(teacher?.FirstName ?? "") @(teacher?.LastName ?? "")</strong><br />
                                                 <small>@lesson.Name</small>
                                                 <div class="mt-1">
                                                     <span class="badge @GetStatusBadgeClass(lesson.Status)">
@@ -85,12 +86,13 @@
                                     }
                                     else if (availableSlot != null)
                                     {
+                                        var tutor = availableSlot.Tutor as ApplicationUser;
                                         <td class="available-slot"
                                             onclick="bookLesson(@availableSlot.Id)">
                                             <div class="slot-details text-center">
                                                 <i class="fas fa-calendar-plus"></i><br />
                                                 <small>Dostępny termin</small><br />
-                                                <small>@availableSlot.Teacher.FirstName @availableSlot.Teacher.LastName</small>
+                                                <small>@(tutor?.FirstName ?? "") @(tutor?.LastName ?? "")</small>
                                             </div>
                                         </td>
                                     }
@@ -347,7 +349,8 @@
 
     string GetLessonTooltip(Lesson lesson)
     {
-        return $"Nauczyciel: {lesson.Teacher.FirstName} {lesson.Teacher.LastName}\n" +
+        var teacher = lesson.Teacher as ApplicationUser;
+        return $"Nauczyciel: {teacher?.FirstName ?? ""} {teacher?.LastName ?? ""}\n" +
                $"Przedmiot: {lesson.Name}\n" +
                $"Godzina: {lesson.StartTime:HH:mm} - {lesson.EndTime:HH:mm}";
     }

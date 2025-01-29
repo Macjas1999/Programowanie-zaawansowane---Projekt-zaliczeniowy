@@ -2,9 +2,14 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Projekt_zaliczeniowy.Data;
+using Projekt_zaliczeniowy.Models;
+using Projekt_zaliczeniowy.Models.ViewModels;
+using System.Linq;
 
 namespace Projekt_zaliczeniowy.Controllers
 {
+    [Authorize(Roles = "Uzytkownik")]
     public class StudentController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -21,17 +26,93 @@ namespace Projekt_zaliczeniowy.Controllers
             _logger = logger;
         }
 
-        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> Index()
+        {
+            var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
+
+            var viewModel = new StudentDashboardViewModel
+            {
+                UpcomingLessons = await _context.Lessons
+                    .Include(l => l.Teacher)
+                    .Where(l => l.StudentId == currentUser.Id && 
+                               l.StartTime > DateTime.Now && 
+                               l.Status == LessonStatus.Scheduled)
+                    .OrderBy(l => l.StartTime)
+                    .Take(5)
+                    .ToListAsync(),
+
+                RecentLessons = await _context.Lessons
+                    .Include(l => l.Teacher)
+                    .Where(l => l.StudentId == currentUser.Id && 
+                               l.StartTime <= DateTime.Now)
+                    .OrderByDescending(l => l.StartTime)
+                    .Take(5)
+                    .ToListAsync(),
+
+                PendingPayments = await _context.Payments
+                    .Include(p => p.Lesson)
+                    .ThenInclude(l => l.Teacher)
+                    .Where(p => p.Lesson.StudentId == currentUser.Id && 
+                               p.Status == PaymentStatus.Pending)
+                    .ToListAsync()
+            };
+
+            return View(viewModel);
+        }
+
+        public async Task<IActionResult> Sessions()
+        {
+            var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
+
+            var lessons = await _context.Lessons
+                .Include(l => l.Teacher)
+                .Where(l => l.StudentId == currentUser.Id)
+                .OrderByDescending(l => l.StartTime)
+                .ToListAsync();
+
+            return View(lessons);
+        }
+
+        public async Task<IActionResult> Payments()
+        {
+            var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
+
+            var payments = await _context.Payments
+                .Include(p => p.Lesson)
+                .ThenInclude(l => l.Teacher)
+                .Where(p => p.Lesson.StudentId == currentUser.Id)
+                .OrderByDescending(p => p.PaymentDate)
+                .ToListAsync();
+
+            return View(payments);
+        }
+
         public async Task<IActionResult> Calendar(DateTime? date)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
+            var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
+
             var selectedDate = date ?? DateTime.Today;
             var startOfWeek = selectedDate.AddDays(-(int)selectedDate.DayOfWeek);
             var endOfWeek = startOfWeek.AddDays(7);
 
             var lessons = await _context.Lessons
                 .Include(l => l.Teacher)
-                .Include(l => l.Name)
                 .Where(l => l.StudentId == currentUser.Id &&
                            l.StartTime >= startOfWeek &&
                            l.StartTime < endOfWeek)
@@ -50,14 +131,17 @@ namespace Projekt_zaliczeniowy.Controllers
             return View(lessons);
         }
 
-        [Authorize(Roles = "authUzytkownik")]
         [HttpGet]
         public async Task<IActionResult> LessonDetails(int id)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
+            var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
+
             var lesson = await _context.Lessons
                 .Include(l => l.Teacher)
-                .Include(l => l.Name)
                 .Include(l => l.Payment)
                 .FirstOrDefaultAsync(l => l.Id == id && l.StudentId == currentUser.Id);
 
@@ -69,39 +153,58 @@ namespace Projekt_zaliczeniowy.Controllers
             return PartialView("_LessonDetails", lesson);
         }
 
-        [Authorize(Roles = "Student")]
         [HttpGet]
         public async Task<IActionResult> GetTeacherSubjects(int availabilityId)
         {
-            var availability = await _context.Availabilities
-                .Include(a => a.Tutor)
-                .ThenInclude(t => t.TeachingSubjects)
-                .FirstOrDefaultAsync(a => a.Id == availabilityId);
+            // Get the tutor ID from availability
+            var tutorId = await _context.Availabilities
+                .Where(a => a.Id == availabilityId)
+                .Select(a => a.TutorId)
+                .FirstOrDefaultAsync();
 
-            if (availability == null)
+            if (tutorId == null)
             {
                 return NotFound();
             }
 
-            var subjects = availability.Tutor.TeachingSubjects.Select(s => new
-            {
-                id = s.Id,
-                name = s.Name
-            });
+            // Get subjects using a join query
+            var subjects = await (from us in _context.Set<Subject>()
+                                join ts in _context.Set<Subject>("UserSubjects")
+                                on us.Id equals EF.Property<int>(ts, "SubjectsId")
+                                where EF.Property<string>(ts, "TeachersId") == tutorId
+                                select new
+                                {
+                                    id = us.Id,
+                                    name = us.Name
+                                })
+                                .ToListAsync();
 
             return Json(subjects);
         }
 
-        [Authorize(Roles = "Student")]
         [HttpPost]
         public async Task<IActionResult> BookLesson(BookLessonViewModel model)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
-            var availability = await _context.Availabilities
-                .Include(a => a.Tutor)
-                .FirstOrDefaultAsync(a => a.Id == model.AvailabilityId && !a.IsBooked);
+            var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
 
-            if (availability == null)
+            // Get the availability and tutor's hourly rate in a single query
+            var availabilityInfo = await _context.Availabilities
+                .Where(a => a.Id == model.AvailabilityId && !a.IsBooked)
+                .Select(a => new
+                {
+                    Availability = a,
+                    TutorRate = _context.Users
+                        .Where(u => u.Id == a.TutorId)
+                        .Select(u => EF.Property<decimal?>(u, "HourlyRate"))
+                        .FirstOrDefault() ?? 0m
+                })
+                .FirstOrDefaultAsync();
+
+            if (availabilityInfo == null)
             {
                 return BadRequest("Ten termin nie jest już dostępny.");
             }
@@ -111,18 +214,18 @@ namespace Projekt_zaliczeniowy.Controllers
             {
                 var lesson = new Lesson
                 {
-                    Id = model.SubjectId,
-                    TeacherId = availability.TutorId,
+                    Name = model.SubjectName,
+                    TeacherId = availabilityInfo.Availability.TutorId,
                     StudentId = currentUser.Id,
-                    StartTime = availability.StartTime,
-                    EndTime = availability.EndTime,
+                    StartTime = availabilityInfo.Availability.StartTime,
+                    EndTime = availabilityInfo.Availability.EndTime,
                     Status = LessonStatus.Scheduled,
                     Notes = model.Notes,
-                    Price = availability.Tutor.HourlyRate ?? 0
+                    Price = availabilityInfo.TutorRate
                 };
 
                 _context.Lessons.Add(lesson);
-                availability.IsBooked = true;
+                availabilityInfo.Availability.IsBooked = true;
 
                 var payment = new Payment
                 {
@@ -146,11 +249,15 @@ namespace Projekt_zaliczeniowy.Controllers
             }
         }
 
-        [Authorize(Roles = "Student")]
         [HttpPost]
         public async Task<IActionResult> CancelLesson(int id)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
+            var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
+
             var lesson = await _context.Lessons
                 .Include(l => l.Payment)
                 .FirstOrDefaultAsync(l => l.Id == id &&
@@ -200,5 +307,6 @@ namespace Projekt_zaliczeniowy.Controllers
         public int AvailabilityId { get; set; }
         public int SubjectId { get; set; }
         public string? Notes { get; set; }
+        public string SubjectName { get; set; }
     }
 }
