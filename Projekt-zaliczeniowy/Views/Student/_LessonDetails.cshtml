@@ -1,45 +1,93 @@
 @model Projekt_zaliczeniowy.Models.Lesson
 
-<div class="lesson-details">
-    <div class="mb-3">
-        <h6>Przedmiot</h6>
-        <p>@Model.Name</p>
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <h6>Data lekcji:</h6>
+            <p>@Model.StartTime.ToString("dd.MM.yyyy HH:mm")</p>
+        </div>
+        <div class="col-md-6">
+            <h6>Czas trwania:</h6>
+            <p>@((Model.EndTime - Model.StartTime).TotalMinutes) minut</p>
+        </div>
     </div>
-
-    <div class="mb-3">
-        <h6>Nauczyciel</h6>
-        <p>@Model.Teacher.UserName</p>
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <h6>Nauczyciel:</h6>
+            <p>@Model.Teacher.FirstName @Model.Teacher.LastName</p>
+        </div>
+        <div class="col-md-6">
+            <h6>Status:</h6>
+            <span class="badge @GetStatusBadgeClass(Model.Status)">@GetStatusText(Model.Status)</span>
+        </div>
     </div>
-
-    <div class="mb-3">
-        <h6>Data i godzina</h6>
-        <p>@Model.StartTime.ToString("dd.MM.yyyy HH:mm") - @Model.EndTime.ToString("HH:mm")</p>
-    </div>
-
-    <div class="mb-3">
-        <h6>Status</h6>
-        <p>@Model.Status</p>
-    </div>
-
-    <div class="mb-3">
-        <h6>Cena</h6>
-        <p>@Model.Price PLN</p>
-    </div>
-
-    @if (Model.Notes != null)
+    @if (!string.IsNullOrEmpty(Model.Notes))
     {
-        <div class="mb-3">
-            <h6>Notatki</h6>
-            <p>@Model.Notes</p>
+        <div class="row mb-3">
+            <div class="col">
+                <h6>Uwagi:</h6>
+                <p>@Model.Notes</p>
+            </div>
         </div>
     }
-
-    @if (Model.Status == LessonStatus.Scheduled)
+    @if (Model.Payment != null)
     {
-        <div class="mt-4">
-            <button class="btn btn-danger" onclick="cancelLesson(@Model.Id)">
-                Anuluj lekcję
-            </button>
+        <div class="row mb-3">
+            <div class="col">
+                <h6>Status płatności:</h6>
+                <span class="badge @GetPaymentBadgeClass(Model.Payment.Status)">
+                    @GetPaymentStatusText(Model.Payment.Status)
+                </span>
+            </div>
         </div>
     }
-</div> 
+    
+    @if (Model.Status == LessonStatus.Scheduled && Model.StartTime > DateTime.Now)
+    {
+        <div class="row mt-4">
+            <div class="col">
+                <button type="button" class="btn btn-danger" onclick="cancelLesson(@Model.Id)">
+                    <i class="fas fa-times"></i> Zrezygnuj z lekcji
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@functions {
+    string GetStatusBadgeClass(LessonStatus status) => status switch
+    {
+        LessonStatus.Scheduled => "bg-primary",
+        LessonStatus.InProgress => "bg-warning",
+        LessonStatus.Completed => "bg-success",
+        LessonStatus.Cancelled => "bg-danger",
+        _ => "bg-secondary"
+    };
+
+    string GetStatusText(LessonStatus status) => status switch
+    {
+        LessonStatus.Scheduled => "Zaplanowana",
+        LessonStatus.InProgress => "W trakcie",
+        LessonStatus.Completed => "Zakończona",
+        LessonStatus.Cancelled => "Anulowana",
+        _ => "Nieznany"
+    };
+
+    string GetPaymentBadgeClass(PaymentStatus status) => status switch
+    {
+        PaymentStatus.Pending => "bg-warning",
+        PaymentStatus.Completed => "bg-success",
+        PaymentStatus.Failed => "bg-danger",
+        PaymentStatus.Refunded => "bg-info",
+        _ => "bg-secondary"
+    };
+
+    string GetPaymentStatusText(PaymentStatus status) => status switch
+    {
+        PaymentStatus.Pending => "Oczekująca",
+        PaymentStatus.Completed => "Opłacona",
+        PaymentStatus.Failed => "Nieudana",
+        PaymentStatus.Refunded => "Zwrócona",
+        _ => "Nieznany"
+    };
+} 

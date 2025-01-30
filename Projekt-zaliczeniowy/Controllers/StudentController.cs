@@ -116,6 +116,7 @@ namespace Projekt_zaliczeniowy.Controllers
                 .ToListAsync();
 
             ViewBag.AvailableSlots = availableSlots;
+            ViewBag.SelectedDate = selectedDate;
             return View(lessons);
         }
 

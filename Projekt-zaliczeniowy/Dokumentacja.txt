@@ -1,0 +1,63 @@
+System Korepetycji Online - Dokumentacja
+
+1. OPIS SYSTEMU
+System Korepetycji Online to platforma umożliwiająca organizację i zarządzanie korepetycjami online. 
+Aplikacja łączy uczniów z korepetytorami, umożliwiając planowanie lekcji i zarządzanie płatnościami.
+
+2. ROLE UŻYTKOWNIKÓW
+
+a) Korepetytor:
+- Zarządzanie dostępnością (dodawanie/usuwanie terminów)
+- Przeglądanie kalendarza zajęć
+- Zarządzanie lekcjami (rozpoczynanie, kończenie, anulowanie)
+- Przeglądanie historii przeprowadzonych lekcji
+
+b) Uczeń:
+- Przeglądanie dostępnych korepetytorów
+- Rezerwacja terminów lekcji
+- Zarządzanie własnymi lekcjami
+- Dokonywanie płatności za lekcje
+- Anulowanie zarezerwowanych lekcji
+
+3. GŁÓWNE FUNKCJE
+
+Kalendarz:
+- Widok 24-godzinny
+- Nawigacja między tygodniami (do 2 miesięcy wstecz i wprzód)
+- Oznaczenia kolorystyczne statusów lekcji
+- Możliwość dodawania i usuwania dostępności (dla korepetytorów)
+- Rezerwacja terminów (dla uczniów)
+
+Lekcje:
+- Różne statusy (Zaplanowana, W trakcie, Zakończona, Anulowana)
+- Szczegółowe informacje o lekcji
+- Możliwość anulowania lekcji
+- Historia przeprowadzonych lekcji
+
+Płatności:
+- Zarządzanie płatnościami za lekcje
+- Historia transakcji
+- Status płatności (Oczekująca, Opłacona, Zwrócona)
+
+4. INSTRUKCJA UŻYTKOWANIA
+
+Dla Korepetytora:
+1. Zaloguj się na konto
+2. Przejdź do kalendarza
+3. Dodaj terminy dostępności klikając "+" w wybranym czasie
+4. Zarządzaj lekcjami poprzez panel główny
+5. Aktualizuj status lekcji w ich szczegółach
+
+Dla Ucznia:
+1. Zaloguj się na konto
+2. Znajdź korepetytora przez zakładkę "Znajdź korepetytora"
+3. Wybierz dostępny termin w kalendarzu
+4. Dokonaj rezerwacji i płatności
+5. Zarządzaj swoimi lekcjami przez panel główny
+
+5. WSKAZÓWKI TECHNICZNE
+
+- System działa najlepiej w nowoczesnych przeglądarkach
+- Zalecane jest regularne odświeżanie kalendarza
+- System automatycznie blokuje rezerwację terminów z przeszłości
+- Anulowanie lekcji możliwe jest najpóźniej 24 godziny przed rozpoczęciem

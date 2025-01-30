@@ -2,28 +2,59 @@
 @{
     ViewData["Title"] = "Kalendarz korepetytora";
     var availabilities = ViewBag.Availabilities as List<Projekt_zaliczeniowy.Models.Availability>;
-    var selectedDate = ViewBag.SelectedDate as DateTime? ?? DateTime.Today;
+    var today = DateTime.Today;
+    var selectedDate = ViewBag.SelectedDate as DateTime? ?? today;
     var startOfWeek = selectedDate.AddDays(-(int)selectedDate.DayOfWeek);
+    var minDate = today.AddMonths(-2);
+    var maxDate = today.AddMonths(2);
     var weekDays = Enumerable.Range(0, 7).Select(d => startOfWeek.AddDays(d)).ToList();
-    var hours = Enumerable.Range(8, 12); // 8:00 - 19:00
+    var hours = Enumerable.Range(0, 24); // 00:00 - 23:00
+    
+    var isPreviousWeekAllowed = startOfWeek > minDate;
+    var isNextWeekAllowed = startOfWeek.AddDays(7) < maxDate;
 }
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Kalendarz zajęć</h2>
+        <div>
+            <h2>Kalendarz zajęć</h2>
+            <p class="text-muted">
+                <small>Możesz przeglądać kalendarz od @minDate.ToString("dd.MM.yyyy") do @maxDate.ToString("dd.MM.yyyy")</small>
+            </p>
+        </div>
         <div class="btn-group">
-            <a asp-action="Calendar" asp-route-date="@selectedDate.AddDays(-7).ToString("yyyy-MM-dd")" 
-               class="btn btn-outline-primary">
-                <i class="fas fa-chevron-left"></i> Poprzedni tydzień
-            </a>
-            <a asp-action="Calendar" asp-route-date="@DateTime.Today.ToString("yyyy-MM-dd")" 
-               class="btn btn-outline-primary">
+            @if (isPreviousWeekAllowed)
+            {
+                <a href="@Url.Action("Calendar", new { date = startOfWeek.AddDays(-7).ToString("yyyy-MM-dd") })" 
+                   class="btn btn-outline-primary">
+                    <i class="fas fa-chevron-left"></i> Poprzedni tydzień
+                </a>
+            }
+            else
+            {
+                <button class="btn btn-outline-secondary" disabled>
+                    <i class="fas fa-chevron-left"></i> Poprzedni tydzień
+                </button>
+            }
+            
+            <a href="@Url.Action("Calendar", new { date = today.ToString("yyyy-MM-dd") })" 
+               class="btn btn-outline-primary @(selectedDate.Date == today.Date ? "active" : "")">
                 Dzisiaj
             </a>
-            <a asp-action="Calendar" asp-route-date="@selectedDate.AddDays(7).ToString("yyyy-MM-dd")" 
-               class="btn btn-outline-primary">
-                Następny tydzień <i class="fas fa-chevron-right"></i>
-            </a>
+            
+            @if (isNextWeekAllowed)
+            {
+                <a href="@Url.Action("Calendar", new { date = startOfWeek.AddDays(7).ToString("yyyy-MM-dd") })" 
+                   class="btn btn-outline-primary">
+                    Następny tydzień <i class="fas fa-chevron-right"></i>
+                </a>
+            }
+            else
+            {
+                <button class="btn btn-outline-secondary" disabled>
+                    Następny tydzień <i class="fas fa-chevron-right"></i>
+                </button>
+            }
         </div>
     </div>
 
@@ -58,21 +89,25 @@
                                          onclick="showLessonDetails(@lesson.Id)">
                                         <small>@lesson.Name</small><br>
                                         <small>@lesson.Student.UserName</small>
-                                        <small class="d-block">@GetStatusBadge(lesson.Status)</small>
+                                        <small class="d-block">@Html.Raw(GetStatusBadge(lesson.Status))</small>
                                     </div>
                                 }
                                 else if (availability != null)
                                 {
                                     if (availability.IsBooked)
                                     {
-                                        <div class="availability-block bg-warning p-2">
-                                            <small>Zarezerwowane</small>
+                                        <div class="availability-block booked">
+                                            <i class="fas fa-clock"></i> Zarezerwowane
                                         </div>
                                     }
                                     else
                                     {
-                                        <div class="availability-block bg-success text-white p-2">
-                                            <small>Dostępne</small>
+                                        <div class="availability-block available">
+                                            <i class="fas fa-clock"></i> Dostępne
+                                            <button class="btn btn-sm btn-danger ms-2" 
+                                                    onclick="deleteAvailability(@availability.Id)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
                                         </div>
                                     }
                                 }
@@ -150,6 +185,28 @@
             text-align: center;
             vertical-align: middle;
         }
+
+        .availability-block {
+            padding: 8px;
+            border-radius: 4px;
+            margin: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .availability-block.available {
+            background-color: #e8f5e9;
+            border: 1px solid #81c784;
+            color: #2e7d32;
+        }
+
+        .availability-block.booked {
+            background-color: #fff3e0;
+            border: 1px solid #ffb74d;
+            color: #f57c00;
+        }
     </style>
 }
 
@@ -176,6 +233,22 @@
                     location.reload();
                 }
             });
+        }
+
+        function deleteAvailability(availabilityId) {
+            if (confirm('Czy na pewno chcesz usunąć ten termin?')) {
+                $.post('/Teacher/DeleteAvailability/' + availabilityId)
+                    .done(function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert(response.message || 'Wystąpił błąd podczas usuwania terminu.');
+                        }
+                    })
+                    .fail(function() {
+                        alert('Wystąpił błąd podczas usuwania terminu.');
+                    });
+            }
         }
     </script>
 }

@@ -1,0 +1,5 @@
+﻿Obecnie stworzone konta testowe:
+Uczeń:
+TestU@test.com Hasło: Test1234!
+Nauczyciel:
+TestT@test.com Hasło: Test1234!

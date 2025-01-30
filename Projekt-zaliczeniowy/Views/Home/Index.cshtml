@@ -7,22 +7,36 @@
     {
         @if (User.IsInRole("Administrator"))
         {
+            <div class="row mb-4">
+                <div class="col">
+                    <h2>Panel Administratora</h2>
+                    <p class="text-muted">Zarządzaj systemem korepetycji</p>
+                </div>
+            </div>
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-6 mb-4">
                     <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">Zarządzanie użytkownikami</h5>
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title">Zarządzanie użytkownikami</h5>
-                            <p class="card-text">Zarządzaj kontami uczniów i nauczycieli.</p>
-                            <a asp-controller="Admin" asp-action="Users" class="btn btn-primary">Przejdź</a>
+                            <p class="card-text">Zarządzaj kontami uczniów i nauczycieli, przydzielaj role i uprawnienia.</p>
+                            <a asp-controller="Admin" asp-action="Users" class="btn btn-primary">
+                                <i class="fas fa-users"></i> Przejdź do zarządzania
+                            </a>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6 mb-4">
                     <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="card-title mb-0">Raporty i statystyki</h5>
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title">Raporty</h5>
-                            <p class="card-text">Przeglądaj raporty i statystyki.</p>
-                            <a asp-controller="Admin" asp-action="Reports" class="btn btn-primary">Przejdź</a>
+                            <p class="card-text">Przeglądaj raporty, analizuj statystyki i monitoruj działanie systemu.</p>
+                            <a asp-controller="Admin" asp-action="Reports" class="btn btn-info">
+                                <i class="fas fa-chart-bar"></i> Zobacz raporty
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -30,22 +44,36 @@
         }
         else if (User.IsInRole("Korepetytor"))
         {
+            <div class="row mb-4">
+                <div class="col">
+                    <h2>Panel Korepetytora</h2>
+                    <p class="text-muted">Zarządzaj swoimi lekcjami i dostępnością</p>
+                </div>
+            </div>
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-6 mb-4">
                     <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">Panel główny</h5>
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title">Panel główny</h5>
-                            <p class="card-text">Przejdź do panelu głównego korepetytora.</p>
-                            <a asp-controller="Teacher" asp-action="Index" class="btn btn-primary">Przejdź</a>
+                            <p class="card-text">Zarządzaj swoimi lekcjami, sprawdzaj harmonogram i komunikuj się z uczniami.</p>
+                            <a asp-controller="Teacher" asp-action="Index" class="btn btn-primary">
+                                <i class="fas fa-chalkboard-teacher"></i> Przejdź do panelu
+                            </a>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6 mb-4">
                     <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="card-title mb-0">Kalendarz zajęć</h5>
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title">Kalendarz</h5>
-                            <p class="card-text">Zarządzaj swoim harmonogramem zajęć.</p>
-                            <a asp-controller="Teacher" asp-action="Calendar" class="btn btn-primary">Przejdź</a>
+                            <p class="card-text">Zarządzaj swoją dostępnością, planuj lekcje i przeglądaj harmonogram.</p>
+                            <a asp-controller="Teacher" asp-action="Calendar" class="btn btn-success">
+                                <i class="fas fa-calendar-alt"></i> Otwórz kalendarz
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -53,31 +81,49 @@
         }
         else if (User.IsInRole("Uzytkownik"))
         {
+            <div class="row mb-4">
+                <div class="col">
+                    <h2>Panel Ucznia</h2>
+                    <p class="text-muted">Zarządzaj swoimi lekcjami i płatnościami</p>
+                </div>
+            </div>
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-4 mb-4">
                     <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">Panel główny</h5>
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title">Panel główny</h5>
-                            <p class="card-text">Przejdź do panelu głównego ucznia.</p>
-                            <a asp-controller="Student" asp-action="Index" class="btn btn-primary">Przejdź</a>
+                            <p class="card-text">Przeglądaj swoje lekcje, postępy i komunikuj się z korepetytorami.</p>
+                            <a asp-controller="Student" asp-action="Index" class="btn btn-primary">
+                                <i class="fas fa-user-graduate"></i> Przejdź do panelu
+                            </a>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4 mb-4">
                     <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="card-title mb-0">Kalendarz zajęć</h5>
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title">Kalendarz</h5>
-                            <p class="card-text">Zobacz swój harmonogram zajęć.</p>
-                            <a asp-controller="Student" asp-action="Calendar" class="btn btn-primary">Przejdź</a>
+                            <p class="card-text">Przeglądaj swój harmonogram i rezerwuj nowe lekcje.</p>
+                            <a asp-controller="Student" asp-action="Calendar" class="btn btn-success">
+                                <i class="fas fa-calendar-alt"></i> Zobacz kalendarz
+                            </a>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4 mb-4">
                     <div class="card">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="card-title mb-0">Płatności</h5>
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title">Płatności</h5>
-                            <p class="card-text">Zarządzaj swoimi płatnościami.</p>
-                            <a asp-controller="Student" asp-action="Payments" class="btn btn-primary">Przejdź</a>
+                            <p class="card-text">Zarządzaj płatnościami za lekcje i sprawdzaj historię transakcji.</p>
+                            <a asp-controller="Student" asp-action="Payments" class="btn btn-warning">
+                                <i class="fas fa-credit-card"></i> Przejdź do płatności
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -86,13 +132,64 @@
     }
     else
     {
-        <div class="text-center">
-            <h1 class="display-4">Witaj w systemie korepetycji online</h1>
-            <p>Zaloguj się lub zarejestruj, aby rozpocząć.</p>
-            <div class="mt-4">
-                <a asp-controller="Account" asp-action="Login" class="btn btn-primary mx-2">Zaloguj się</a>
-                <a asp-controller="Account" asp-action="Register" class="btn btn-success mx-2">Zarejestruj się</a>
+        <div class="row mb-4">
+            <div class="col text-center">
+                <h1 class="display-4">Witaj w systemie korepetycji online</h1>
+                <p class="lead">Znajdź najlepszych korepetytorów i rozwijaj swoje umiejętności</p>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">Rozpocznij naukę</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <p class="card-text">Zaloguj się lub utwórz nowe konto, aby rozpocząć korzystanie z platformy.</p>
+                        <div class="d-grid gap-3">
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt"></i> Zaloguj się
+                            </a>
+                            <a asp-controller="Account" asp-action="Register" class="btn btn-success">
+                                <i class="fas fa-user-plus"></i> Zarejestruj się
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     }
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .card {
+            transition: transform 0.2s;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .btn {
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .display-4 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .lead {
+            color: #6c757d;
+            margin-bottom: 2rem;
+        }
+    </style>
+}

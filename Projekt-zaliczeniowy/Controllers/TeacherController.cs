@@ -173,5 +173,37 @@ namespace Projekt_zaliczeniowy.Controllers
             await _context.SaveChangesAsync();
             return Json(new { success = true });
         }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteAvailability(int id)
+        {
+            var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
+
+            var availability = await _context.Availabilities
+                .FirstOrDefaultAsync(a => a.Id == id && 
+                                        a.TutorId == currentUser.Id && 
+                                        !a.IsBooked);
+
+            if (availability == null)
+            {
+                return Json(new { success = false, message = "Nie znaleziono dostępności lub jest już zarezerwowana." });
+            }
+
+            try
+            {
+                _context.Availabilities.Remove(availability);
+                await _context.SaveChangesAsync();
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Błąd podczas usuwania dostępności");
+                return Json(new { success = false, message = "Wystąpił błąd podczas usuwania dostępności." });
+            }
+        }
     }
 }
