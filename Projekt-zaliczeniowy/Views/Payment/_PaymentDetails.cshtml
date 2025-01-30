@@ -1,0 +1,57 @@
+@model Projekt_zaliczeniowy.Models.Payment
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <h6>Data lekcji:</h6>
+            <p>@Model.Lesson.StartTime.ToString("dd.MM.yyyy HH:mm")</p>
+        </div>
+        <div class="col-md-6">
+            <h6>Czas trwania:</h6>
+            <p>@((Model.Lesson.EndTime - Model.Lesson.StartTime).TotalMinutes) minut</p>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <h6>Nauczyciel:</h6>
+            <p>@Model.Lesson.Teacher.FirstName @Model.Lesson.Teacher.LastName</p>
+        </div>
+        <div class="col-md-6">
+            <h6>Status płatności:</h6>
+            @switch (Model.Status)
+            {
+                case PaymentStatus.Pending:
+                    <span class="badge bg-warning">Oczekująca</span>
+                    break;
+                case PaymentStatus.Completed:
+                    <span class="badge bg-success">Opłacona</span>
+                    break;
+                case PaymentStatus.Failed:
+                    <span class="badge bg-danger">Nieudana</span>
+                    break;
+                case PaymentStatus.Refunded:
+                    <span class="badge bg-info">Zwrócona</span>
+                    break;
+            }
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <h6>Kwota:</h6>
+            <p class="text-primary fw-bold">@Model.Amount PLN</p>
+        </div>
+        <div class="col-md-6">
+            <h6>Data płatności:</h6>
+            <p>@(Model.Status == PaymentStatus.Pending ? "-" : Model.PaymentDate.ToString("dd.MM.yyyy HH:mm"))</p>
+        </div>
+    </div>
+    @if (!string.IsNullOrEmpty(Model.Lesson.Notes))
+    {
+        <div class="row mb-3">
+            <div class="col">
+                <h6>Uwagi do lekcji:</h6>
+                <p>@Model.Lesson.Notes</p>
+            </div>
+        </div>
+    }
+</div> 

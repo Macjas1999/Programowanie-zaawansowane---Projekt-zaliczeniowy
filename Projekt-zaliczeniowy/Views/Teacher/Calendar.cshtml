@@ -1,0 +1,209 @@
+@model List<Projekt_zaliczeniowy.Models.Lesson>
+@{
+    ViewData["Title"] = "Kalendarz korepetytora";
+    var availabilities = ViewBag.Availabilities as List<Projekt_zaliczeniowy.Models.Availability>;
+    var selectedDate = ViewBag.SelectedDate as DateTime? ?? DateTime.Today;
+    var startOfWeek = selectedDate.AddDays(-(int)selectedDate.DayOfWeek);
+    var weekDays = Enumerable.Range(0, 7).Select(d => startOfWeek.AddDays(d)).ToList();
+    var hours = Enumerable.Range(8, 12); // 8:00 - 19:00
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Kalendarz zajęć</h2>
+        <div class="btn-group">
+            <a asp-action="Calendar" asp-route-date="@selectedDate.AddDays(-7).ToString("yyyy-MM-dd")" 
+               class="btn btn-outline-primary">
+                <i class="fas fa-chevron-left"></i> Poprzedni tydzień
+            </a>
+            <a asp-action="Calendar" asp-route-date="@DateTime.Today.ToString("yyyy-MM-dd")" 
+               class="btn btn-outline-primary">
+                Dzisiaj
+            </a>
+            <a asp-action="Calendar" asp-route-date="@selectedDate.AddDays(7).ToString("yyyy-MM-dd")" 
+               class="btn btn-outline-primary">
+                Następny tydzień <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Godzina</th>
+                    @foreach (var day in weekDays)
+                    {
+                        <th class="text-center @(day.Date == DateTime.Today ? "table-primary" : "")">
+                            @day.ToString("dddd")<br>@day.ToString("dd.MM")
+                        </th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var hour in hours)
+                {
+                    <tr>
+                        <td class="text-center">@($"{hour:00}:00")</td>
+                        @foreach (var day in weekDays)
+                        {
+                            var currentDateTime = day.AddHours(hour);
+                            var lesson = Model.FirstOrDefault(l => l.StartTime.Date == day.Date && l.StartTime.Hour == hour);
+                            var availability = availabilities?.FirstOrDefault(a => a.StartTime.Date == day.Date && a.StartTime.Hour == hour);
+                            
+                            <td class="position-relative @(currentDateTime < DateTime.Now ? "bg-light" : "")">
+                                @if (lesson != null)
+                                {
+                                    <div class="lesson-block @GetLessonStatusClass(lesson.Status)" 
+                                         onclick="showLessonDetails(@lesson.Id)">
+                                        <small>@lesson.Name</small><br>
+                                        <small>@lesson.Student.UserName</small>
+                                        <small class="d-block">@GetStatusBadge(lesson.Status)</small>
+                                    </div>
+                                }
+                                else if (availability != null)
+                                {
+                                    if (availability.IsBooked)
+                                    {
+                                        <div class="availability-block bg-warning p-2">
+                                            <small>Zarezerwowane</small>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="availability-block bg-success text-white p-2">
+                                            <small>Dostępne</small>
+                                        </div>
+                                    }
+                                }
+                                else if (currentDateTime > DateTime.Now)
+                                {
+                                    <button class="btn btn-outline-secondary btn-sm w-100" 
+                                            onclick="addAvailability('@day.ToString("yyyy-MM-dd")', @hour)">
+                                        +
+                                    </button>
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal dla szczegółów lekcji -->
+<div class="modal fade" id="lessonDetailsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Szczegóły lekcji</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .lesson-block, .availability-block {
+            cursor: pointer;
+            border-radius: 4px;
+            min-height: 50px;
+            padding: 8px;
+        }
+        
+        .lesson-block {
+            margin: 2px;
+        }
+
+        .lesson-status-scheduled {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .lesson-status-completed {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .lesson-status-cancelled {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .lesson-status-in-progress {
+            background-color: #ffc107;
+            color: black;
+        }
+        
+        td {
+            min-width: 120px;
+            height: 80px;
+            padding: 4px !important;
+        }
+
+        .table th {
+            text-align: center;
+            vertical-align: middle;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        function addAvailability(date, hour) {
+            $.post('/Teacher/AddAvailability', { date: date, hour: hour }, function(response) {
+                if (response.success) {
+                    location.reload();
+                }
+            });
+        }
+
+        function showLessonDetails(lessonId) {
+            $.get(`/Teacher/LessonDetails/${lessonId}`, function(data) {
+                $('#lessonDetailsModal .modal-body').html(data);
+                $('#lessonDetailsModal').modal('show');
+            });
+        }
+
+        function updateLessonStatus(lessonId, status) {
+            $.post('/Teacher/UpdateLessonStatus', { id: lessonId, status: status }, function(response) {
+                if (response.success) {
+                    location.reload();
+                }
+            });
+        }
+    </script>
+}
+
+@functions {
+    string GetLessonStatusClass(LessonStatus status)
+    {
+        return status switch
+        {
+            LessonStatus.Scheduled => "lesson-status-scheduled",
+            LessonStatus.InProgress => "lesson-status-in-progress",
+            LessonStatus.Completed => "lesson-status-completed",
+            LessonStatus.Cancelled => "lesson-status-cancelled",
+            _ => ""
+        };
+    }
+
+    string GetStatusBadge(LessonStatus status)
+    {
+        var (text, bgClass) = status switch
+        {
+            LessonStatus.Scheduled => ("Zaplanowana", "bg-primary"),
+            LessonStatus.InProgress => ("W trakcie", "bg-warning"),
+            LessonStatus.Completed => ("Zakończona", "bg-success"),
+            LessonStatus.Cancelled => ("Anulowana", "bg-danger"),
+            _ => ("Nieznany", "bg-secondary")
+        };
+
+        return $"<span class='badge {bgClass}'>{text}</span>";
+    }
+} 

@@ -2,10 +2,11 @@ using Projekt_zaliczeniowy.Models;
 
 namespace Projekt_zaliczeniowy.Models.ViewModels
 {
-    public class TeacherDashboardViewModel
+    public class TutorViewModel
     {
-        public List<Lesson> UpcomingLessons { get; set; }
-        public List<Lesson> RecentLessons { get; set; }
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Email { get; set; }
         public List<Availability> Availabilities { get; set; }
     }
 } 

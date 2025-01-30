@@ -1,0 +1,147 @@
+@model List<Projekt_zaliczeniowy.Models.ViewModels.TutorViewModel>
+
+@{
+    ViewData["Title"] = "Znajdź korepetytora";
+}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Dostępni korepetytorzy</h2>
+            <p class="text-muted">Wybierz korepetytora i zarezerwuj termin zajęć</p>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            Aktualnie brak dostępnych korepetytorów.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var tutor in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">@tutor.Name</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                <i class="fas fa-envelope"></i> @tutor.Email
+                            </p>
+
+                            <h6 class="mt-3">Dostępne terminy:</h6>
+                            @if (!tutor.Availabilities.Any())
+                            {
+                                <p class="text-muted">Brak dostępnych terminów</p>
+                            }
+                            else
+                            {
+                                <div class="list-group">
+                                    @foreach (var availability in tutor.Availabilities.Take(5))
+                                    {
+                                        <button class="list-group-item list-group-item-action"
+                                                onclick="bookLesson(@availability.Id)">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1">@availability.StartTime.ToString("dddd, dd.MM.yyyy")</h6>
+                                                <small>@availability.StartTime.ToString("HH:mm") - @availability.EndTime.ToString("HH:mm")</small>
+                                            </div>
+                                        </button>
+                                    }
+                                </div>
+                                @if (tutor.Availabilities.Count > 5)
+                                {
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            ... i @(tutor.Availabilities.Count - 5) więcej terminów
+                                        </small>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Modal do rezerwacji lekcji -->
+<div class="modal fade" id="bookLessonModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Zarezerwuj lekcję</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="bookLessonForm">
+                    <input type="hidden" id="availabilityId" name="availabilityId" />
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Przedmiot</label>
+                        <select id="subject" name="subjectId" class="form-select" required>
+                            <!-- Wypełniane przez JavaScript -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Uwagi do lekcji</label>
+                        <textarea id="notes" name="notes" class="form-control" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                <button type="button" class="btn btn-primary" onclick="confirmBooking()">Zarezerwuj</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function bookLesson(availabilityId) {
+            $('#availabilityId').val(availabilityId);
+            // Pobierz listę przedmiotów dla wybranego nauczyciela
+            $.get(`/Student/GetTeacherSubjects/${availabilityId}`)
+                .done(function(subjects) {
+                    const select = $('#subject');
+                    select.empty();
+                    select.append(new Option('Wybierz przedmiot', ''));
+                    subjects.forEach(function(subject) {
+                        select.append(new Option(subject.name, subject.id));
+                    });
+                    $('#bookLessonModal').modal('show');
+                });
+        }
+
+        function confirmBooking() {
+            if (!$('#subject').val()) {
+                alert('Proszę wybrać przedmiot');
+                return;
+            }
+
+            const formData = {
+                availabilityId: $('#availabilityId').val(),
+                subjectId: $('#subject').val(),
+                notes: $('#notes').val(),
+                subjectName: $('#subject option:selected').text()
+            };
+
+            $.post('/Student/BookLesson', formData)
+                .done(function(response) {
+                    if (response.success) {
+                        $('#bookLessonModal').modal('hide');
+                        location.href = '/Student/Calendar';
+                    } else {
+                        alert('Wystąpił błąd podczas rezerwacji lekcji');
+                    }
+                })
+                .fail(function() {
+                    alert('Wystąpił błąd podczas rezerwacji lekcji');
+                });
+        }
+    </script>
+} 

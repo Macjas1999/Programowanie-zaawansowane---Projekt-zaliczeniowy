@@ -1,136 +1,98 @@
-﻿@model IEnumerable<Lesson>
+﻿@model List<Projekt_zaliczeniowy.Models.Lesson>
 @{
-    ViewData["Title"] = "Mój kalendarz zajęć";
-    var currentDate = DateTime.Now;
-    var startOfWeek = currentDate.AddDays(-(int)currentDate.DayOfWeek);
-    var availableHours = Enumerable.Range(8, 12); // 8:00 - 19:00
-    var availableSlots = ViewBag.AvailableSlots as IEnumerable<Availability> ?? Enumerable.Empty<Availability>();
+    ViewData["Title"] = "Kalendarz zajęć";
+    var today = DateTime.Today;
+    var selectedDate = ViewBag.SelectedDate ?? today;
+    var startOfWeek = selectedDate.AddDays(-(int)selectedDate.DayOfWeek);
+    var weekDays = new List<DateTime>();
+    for (int i = 0; i < 7; i++)
+    {
+        weekDays.Add(startOfWeek.AddDays(i));
+    }
+    var timeSlots = Enumerable.Range(8, 12).ToList(); // 8:00 - 19:00
 }
 
-<div class="container-fluid mt-4">
+<div class="container">
     <div class="row mb-4">
         <div class="col">
-            <h2>Mój kalendarz zajęć</h2>
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="btn-group">
-                    <a href="@Url.Action("Calendar", new { date = currentDate.AddDays(-7).ToString("yyyy-MM-dd") })"
-                       class="btn btn-outline-primary">
-                        <i class="fas fa-chevron-left"></i> Poprzedni tydzień
-                    </a>
-                    <a href="@Url.Action("Calendar", new { date = currentDate.ToString("yyyy-MM-dd") })"
-                       class="btn btn-outline-primary">
-                        Dzisiaj
-                    </a>
-                    <a href="@Url.Action("Calendar", new { date = currentDate.AddDays(7).ToString("yyyy-MM-dd") })"
-                       class="btn btn-outline-primary">
-                        Następny tydzień <i class="fas fa-chevron-right"></i>
-                    </a>
-                </div>
-                <a href="@Url.Action("FindTutor")" class="btn btn-success">
-                    <i class="fas fa-search"></i> Znajdź korepetytora
+            <h2>Kalendarz zajęć</h2>
+            <p class="text-muted">Twój harmonogram lekcji</p>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col">
+            <div class="btn-group">
+                <a href="@Url.Action("Calendar", new { date = startOfWeek.AddDays(-7) })" 
+                   class="btn btn-outline-primary">
+                    <i class="fas fa-chevron-left"></i> Poprzedni tydzień
+                </a>
+                <a href="@Url.Action("Calendar", new { date = today })" 
+                   class="btn btn-outline-primary @(selectedDate.Date == today.Date ? "active" : "")">
+                    Dzisiaj
+                </a>
+                <a href="@Url.Action("Calendar", new { date = startOfWeek.AddDays(7) })" 
+                   class="btn btn-outline-primary">
+                    Następny tydzień <i class="fas fa-chevron-right"></i>
                 </a>
             </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered calendar-table">
-                    <thead>
-                        <tr>
-                            <th>Godzina</th>
-                            @for (var day = 0; day < 7; day++)
-                            {
-                                var currentDay = startOfWeek.AddDays(day);
-                                <th class="text-center @(currentDay.Date == DateTime.Now.Date ? "table-primary" : "")">
-                                    @currentDay.ToString("dddd")<br />
-                                    @currentDay.ToString("dd.MM")
-                                </th>
-                            }
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var hour in availableHours)
-                        {
-                            <tr>
-                                <td class="hour-cell">@($"{hour:00}:00")</td>
-                                @for (var day = 0; day < 7; day++)
-                                {
-                                    var currentSlot = startOfWeek.AddDays(day).AddHours(hour);
-                                    var lesson = Model.FirstOrDefault(l =>
-                                    l.StartTime.Date == currentSlot.Date &&
-                                    l.StartTime.Hour == currentSlot.Hour);
-                                    var availableSlot = availableSlots.FirstOrDefault(a =>
-                                    a.StartTime.Date == currentSlot.Date &&
-                                    a.StartTime.Hour == currentSlot.Hour);
-
-                                    @if (lesson != null)
-                                    {
-                                        var teacher = lesson.Teacher as ApplicationUser;
-                                        <td class="lesson-cell @GetLessonStatusClass(lesson.Status)"
-                                            onclick="showLessonDetails(@lesson.Id)"
-                                            data-toggle="tooltip"
-                                            data-placement="top"
-                                            title="@GetLessonTooltip(lesson)">
-                                            <div class="lesson-details">
-                                                <strong>@(teacher?.FirstName ?? "") @(teacher?.LastName ?? "")</strong><br />
-                                                <small>@lesson.Name</small>
-                                                <div class="mt-1">
-                                                    <span class="badge @GetStatusBadgeClass(lesson.Status)">
-                                                        @GetStatusText(lesson.Status)
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    }
-                                    else if (availableSlot != null)
-                                    {
-                                        var tutor = availableSlot.Tutor as ApplicationUser;
-                                        <td class="available-slot"
-                                            onclick="bookLesson(@availableSlot.Id)">
-                                            <div class="slot-details text-center">
-                                                <i class="fas fa-calendar-plus"></i><br />
-                                                <small>Dostępny termin</small><br />
-                                                <small>@(tutor?.FirstName ?? "") @(tutor?.LastName ?? "")</small>
-                                            </div>
-                                        </td>
-                                    }
-                                    else
-                                    {
-                                        <td class="empty-cell"></td>
-                                    }
-                                }
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Legenda -->
-    <div class="row mt-3">
+    <div class="row">
         <div class="col">
             <div class="card">
                 <div class="card-body">
-                    <h5>Legenda:</h5>
-                    <div class="d-flex flex-wrap gap-3">
-                        <div class="legend-item">
-                            <span class="badge badge-primary">Zaplanowana</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="badge badge-warning">W trakcie</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="badge badge-success">Zakończona</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="badge badge-danger">Anulowana</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="badge badge-info">Dostępny termin</span>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th style="width: 10%">Godzina</th>
+                                    @foreach (var day in weekDays)
+                                    {
+                                        <th style="width: 13%" class="text-center @(day.Date == today.Date ? "table-info" : "")">
+                                            @day.ToString("dddd")<br />
+                                            @day.ToString("dd.MM")
+                                        </th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var hour in timeSlots)
+                                {
+                                    <tr>
+                                        <td class="align-middle">@($"{hour}:00")</td>
+                                        @foreach (var day in weekDays)
+                                        {
+                                            var currentSlot = day.Date.AddHours(hour);
+                                            var lesson = FindLesson(Model, day.Date, hour);
+                                            var availability = FindAvailability(ViewBag.AvailableSlots as List<Projekt_zaliczeniowy.Models.Availability>, day.Date, hour);
+
+                                            <td class="align-middle text-center">
+                                                @if (lesson != null)
+                                                {
+                                                    <div class="lesson-block @GetLessonStatusClass(lesson.Status)" 
+                                                         onclick="showLessonDetails(@lesson.Id)">
+                                                        <strong>@lesson.Name</strong><br />
+                                                        <small>@lesson.Teacher.FirstName @lesson.Teacher.LastName</small>
+                                                        <span class="badge @GetStatusBadge(lesson.Status)">
+                                                            @GetStatusText(lesson.Status)
+                                                        </span>
+                                                    </div>
+                                                }
+                                                else if (availability != null && currentSlot > DateTime.Now)
+                                                {
+                                                    <button class="btn btn-outline-success btn-sm" 
+                                                            onclick="bookLesson(@availability.Id)">
+                                                        <i class="fas fa-plus"></i> Zarezerwuj
+                                                    </button>
+                                                }
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -144,49 +106,10 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Szczegóły lekcji</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <!-- Wypełniane przez JavaScript -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Zamknij</button>
-                <button type="button" class="btn btn-danger" onclick="cancelLesson()">Anuluj lekcję</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal rezerwacji lekcji -->
-<div class="modal fade" id="bookLessonModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Zarezerwuj lekcję</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="bookLessonForm">
-                    <input type="hidden" id="availabilityId" name="availabilityId" />
-                    <div class="form-group">
-                        <label for="subject">Przedmiot</label>
-                        <select id="subject" name="subjectId" class="form-control" required>
-                            <!-- Wypełniane przez JavaScript -->
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="notes">Uwagi do lekcji</label>
-                        <textarea id="notes" name="notes" class="form-control" rows="3"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Anuluj</button>
-                <button type="button" class="btn btn-primary" onclick="confirmBooking()">Zarezerwuj</button>
+                <!-- Content will be loaded here -->
             </div>
         </div>
     </div>
@@ -194,61 +117,30 @@
 
 @section Styles {
     <style>
-        .calendar-table {
-            table-layout: fixed;
-        }
-
-        .calendar-table th,
-        .calendar-table td {
-            vertical-align: middle;
-            height: 80px;
-        }
-
-        .hour-cell {
-            width: 80px;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .lesson-cell {
-            padding: 5px;
+        .lesson-block {
+            padding: 8px;
+            border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.2s;
         }
 
-        .lesson-cell:hover {
-            opacity: 0.9;
-        }
-
-        .available-slot {
+        .lesson-status-scheduled {
             background-color: #e3f2fd;
-            cursor: pointer;
-            transition: background-color 0.2s;
+            border: 1px solid #90caf9;
         }
 
-        .available-slot:hover {
-            background-color: #bbdefb;
+        .lesson-status-in-progress {
+            background-color: #fff3e0;
+            border: 1px solid #ffb74d;
         }
 
-        .slot-details {
-            color: #1976d2;
+        .lesson-status-completed {
+            background-color: #e8f5e9;
+            border: 1px solid #81c784;
         }
 
-        .empty-cell {
-            background-color: #f8f9fa;
-        }
-
-        .lesson-details {
-            font-size: 0.9em;
-            line-height: 1.2;
-        }
-
-        .legend-item {
-            margin-right: 15px;
-        }
-
-        .gap-3 {
-            gap: 1rem;
+        .lesson-status-cancelled {
+            background-color: #ffebee;
+            border: 1px solid #ef9a9a;
         }
     </style>
 }
@@ -256,61 +148,110 @@
 @section Scripts {
     <script>
         function showLessonDetails(lessonId) {
-            $.get(`/Student/LessonDetails/${lessonId}`)
-                .done(function(response) {
-                    $('#lessonDetailsModal .modal-body').html(response);
-                    $('#lessonDetailsModal').modal('show');
-                });
+            $('#lessonDetailsModal').modal('show');
+            $.get(`/Student/LessonDetails/${lessonId}`, function(data) {
+                $('#lessonDetailsModal .modal-body').html(data);
+            });
         }
 
         function bookLesson(availabilityId) {
-            $('#availabilityId').val(availabilityId);
-            // Pobierz listę przedmiotów dla wybranego nauczyciela
+            // Get subjects for the tutor
             $.get(`/Student/GetTeacherSubjects/${availabilityId}`)
                 .done(function(subjects) {
-                    const select = $('#subject');
-                    select.empty();
-                    subjects.forEach(function(subject) {
-                        select.append(new Option(subject.name, subject.id));
-                    });
-                    $('#bookLessonModal').modal('show');
-                });
-        }
-
-        function confirmBooking() {
-            const formData = new FormData($('#bookLessonForm')[0]);
-            $.post('/Student/BookLesson', formData)
-                .done(function(response) {
-                    $('#bookLessonModal').modal('hide');
-                    location.reload();
+                    if (subjects && subjects.length > 0) {
+                        // Create and show booking form
+                        var form = $('<form>').addClass('booking-form');
+                        
+                        // Add subject dropdown
+                        var subjectGroup = $('<div>').addClass('mb-3');
+                        var subjectLabel = $('<label>').addClass('form-label').text('Wybierz przedmiot:');
+                        var subjectSelect = $('<select>').addClass('form-select').attr('required', true);
+                        subjectSelect.append($('<option>').val('').text('-- Wybierz przedmiot --'));
+                        subjects.forEach(function(subject) {
+                            subjectSelect.append($('<option>').val(subject.id).text(subject.name));
+                        });
+                        subjectGroup.append(subjectLabel, subjectSelect);
+                        
+                        // Add notes field
+                        var notesGroup = $('<div>').addClass('mb-3');
+                        var notesLabel = $('<label>').addClass('form-label').text('Uwagi do lekcji:');
+                        var notesTextarea = $('<textarea>').addClass('form-control').attr('rows', 3);
+                        notesGroup.append(notesLabel, notesTextarea);
+                        
+                        // Add submit button
+                        var submitBtn = $('<button>').addClass('btn btn-primary')
+                            .text('Zarezerwuj')
+                            .click(function(e) {
+                                e.preventDefault();
+                                if (!subjectSelect.val()) {
+                                    alert('Proszę wybrać przedmiot');
+                                    return;
+                                }
+                                
+                                var bookingData = {
+                                    availabilityId: availabilityId,
+                                    subjectId: subjectSelect.val(),
+                                    notes: notesTextarea.val(),
+                                    subjectName: subjectSelect.find('option:selected').text()
+                                };
+                                
+                                $.post('/Student/BookLesson', bookingData)
+                                    .done(function(response) {
+                                        if (response.success) {
+                                            location.reload();
+                                        } else {
+                                            alert('Wystąpił błąd podczas rezerwacji lekcji');
+                                        }
+                                    })
+                                    .fail(function() {
+                                        alert('Wystąpił błąd podczas rezerwacji lekcji');
+                                    });
+                            });
+                        
+                        form.append(subjectGroup, notesGroup, submitBtn);
+                        
+                        // Show in modal
+                        $('#lessonDetailsModal .modal-title').text('Zarezerwuj lekcję');
+                        $('#lessonDetailsModal .modal-body').empty().append(form);
+                        $('#lessonDetailsModal').modal('show');
+                    } else {
+                        alert('Nie znaleziono dostępnych przedmiotów dla tego nauczyciela');
+                    }
                 })
-                .fail(function(error) {
-                    alert('Wystąpił błąd podczas rezerwacji lekcji');
+                .fail(function() {
+                    alert('Wystąpił błąd podczas pobierania przedmiotów');
                 });
         }
-
-        function cancelLesson() {
-            const lessonId = $('#lessonDetailsModal').data('lessonId');
-            if (confirm('Czy na pewno chcesz anulować tę lekcję?')) {
-                $.post(`/Student/CancelLesson/${lessonId}`)
-                    .done(function(response) {
-                        $('#lessonDetailsModal').modal('hide');
-                        location.reload();
-                    })
-                    .fail(function(error) {
-                        alert('Wystąpił błąd podczas anulowania lekcji');
-                    });
-            }
-        }
-
-        // Inicjalizacja tooltipów
-        $(function () {
-            $('[data-toggle="tooltip"]').tooltip();
-        });
     </script>
 }
 
 @functions {
+    private Projekt_zaliczeniowy.Models.Lesson FindLesson(List<Projekt_zaliczeniowy.Models.Lesson> lessons, DateTime date, int hour)
+    {
+        foreach (var lesson in lessons)
+        {
+            if (lesson.StartTime.Date == date && lesson.StartTime.Hour == hour)
+            {
+                return lesson;
+            }
+        }
+        return null;
+    }
+
+    private Projekt_zaliczeniowy.Models.Availability FindAvailability(List<Projekt_zaliczeniowy.Models.Availability> availabilities, DateTime date, int hour)
+    {
+        if (availabilities == null) return null;
+        
+        foreach (var availability in availabilities)
+        {
+            if (availability.StartTime.Date == date && availability.StartTime.Hour == hour)
+            {
+                return availability;
+            }
+        }
+        return null;
+    }
+
     string GetLessonStatusClass(LessonStatus status)
     {
         return status switch
@@ -323,15 +264,15 @@
         };
     }
 
-    string GetStatusBadgeClass(LessonStatus status)
+    string GetStatusBadge(LessonStatus status)
     {
         return status switch
         {
-            LessonStatus.Scheduled => "badge-primary",
-            LessonStatus.InProgress => "badge-warning",
-            LessonStatus.Completed => "badge-success",
-            LessonStatus.Cancelled => "badge-danger",
-            _ => "badge-secondary"
+            LessonStatus.Scheduled => "bg-primary",
+            LessonStatus.InProgress => "bg-warning",
+            LessonStatus.Completed => "bg-success",
+            LessonStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
         };
     }
 
@@ -345,13 +286,5 @@
             LessonStatus.Cancelled => "Anulowana",
             _ => "Nieznany"
         };
-    }
-
-    string GetLessonTooltip(Lesson lesson)
-    {
-        var teacher = lesson.Teacher as ApplicationUser;
-        return $"Nauczyciel: {teacher?.FirstName ?? ""} {teacher?.LastName ?? ""}\n" +
-               $"Przedmiot: {lesson.Name}\n" +
-               $"Godzina: {lesson.StartTime:HH:mm} - {lesson.EndTime:HH:mm}";
     }
 }

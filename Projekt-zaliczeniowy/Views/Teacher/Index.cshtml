@@ -1,17 +1,36 @@
-@model TeacherDashboardViewModel
+@model Projekt_zaliczeniowy.Models.ViewModels.TeacherDashboardViewModel
 
 @{
     ViewData["Title"] = "Panel Korepetytora";
 }
 
 <div class="container">
-    <h2 class="mb-4">Panel Korepetytora</h2>
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Panel Korepetytora</h2>
+        <div>
+            <a asp-controller="Lesson" asp-action="Create" class="btn btn-success me-2">
+                <i class="fas fa-plus"></i> Dodaj nową lekcję
+            </a>
+            <a asp-controller="Teacher" asp-action="Calendar" class="btn btn-primary">
+                <i class="fas fa-calendar"></i> Kalendarz
+            </a>
+        </div>
+    </div>
 
     <div class="row">
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Nadchodzące lekcje</h5>
+        <!-- Nadchodzące lekcje -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Nadchodzące lekcje</h5>
                 </div>
                 <div class="card-body">
                     @if (Model.UpcomingLessons != null && Model.UpcomingLessons.Any())
@@ -26,6 +45,10 @@
                                     </div>
                                     <p class="mb-1">Uczeń: @lesson.Student.UserName</p>
                                     <small>Status: @lesson.Status</small>
+                                    <button class="btn btn-sm btn-info float-end" 
+                                            onclick="showLessonDetails(@lesson.Id)">
+                                        Szczegóły
+                                    </button>
                                 </div>
                             }
                         </div>
@@ -38,10 +61,11 @@
             </div>
         </div>
 
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Ostatnie lekcje</h5>
+        <!-- Ostatnie lekcje -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="card-title mb-0">Ostatnie lekcje</h5>
                 </div>
                 <div class="card-body">
                     @if (Model.RecentLessons != null && Model.RecentLessons.Any())
@@ -56,6 +80,10 @@
                                     </div>
                                     <p class="mb-1">Uczeń: @lesson.Student.UserName</p>
                                     <small>Status: @lesson.Status</small>
+                                    <button class="btn btn-sm btn-info float-end" 
+                                            onclick="showLessonDetails(@lesson.Id)">
+                                        Szczegóły
+                                    </button>
                                 </div>
                             }
                         </div>
@@ -69,74 +97,72 @@
         </div>
     </div>
 
+    <!-- Dostępność -->
     <div class="row">
-        <div class="col-12">
+        <div class="col-12 mb-4">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Dostępne terminy</h5>
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAvailabilityModal">
-                        Dodaj termin
-                    </button>
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">Twoja dostępność</h5>
                 </div>
                 <div class="card-body">
                     @if (Model.Availabilities != null && Model.Availabilities.Any())
                     {
-                        <div class="list-group">
-                            @foreach (var availability in Model.Availabilities)
-                            {
-                                <div class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="mb-1">@availability.StartTime.ToString("dd.MM.yyyy HH:mm") - @availability.EndTime.ToString("HH:mm")</h6>
-                                        <small class="text-muted">@(availability.IsBooked ? "Zarezerwowane" : "Dostępne")</small>
-                                    </div>
-                                    @if (!availability.IsBooked)
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Godzina</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var availability in Model.Availabilities)
                                     {
-                                        <button class="btn btn-danger btn-sm" onclick="removeAvailability(@availability.Id)">
-                                            Usuń
-                                        </button>
+                                        <tr>
+                                            <td>@availability.StartTime.ToString("dd.MM.yyyy")</td>
+                                            <td>@availability.StartTime.ToString("HH:mm") - @availability.EndTime.ToString("HH:mm")</td>
+                                            <td>
+                                                @if (availability.IsBooked)
+                                                {
+                                                    <span class="badge bg-warning">Zarezerwowane</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-success">Dostępne</span>
+                                                }
+                                            </td>
+                                        </tr>
                                     }
-                                </div>
-                            }
+                                </tbody>
+                            </table>
                         </div>
                     }
                     else
                     {
-                        <p class="text-muted">Brak dostępnych terminów</p>
+                        <p class="text-muted">Brak ustawionych terminów dostępności</p>
                     }
+                    <div class="mt-3">
+                        <a asp-action="Calendar" class="btn btn-primary">
+                            Zarządzaj dostępnością
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal do dodawania dostępności -->
-<div class="modal fade" id="addAvailabilityModal" tabindex="-1">
+<!-- Modal dla szczegółów lekcji -->
+<div class="modal fade" id="lessonDetailsModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Dodaj nowy termin</h5>
+                <h5 class="modal-title">Szczegóły lekcji</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="availabilityForm">
-                    <div class="mb-3">
-                        <label for="date" class="form-label">Data</label>
-                        <input type="date" class="form-control" id="date" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="hour" class="form-label">Godzina</label>
-                        <select class="form-control" id="hour" required>
-                            @for (int i = 8; i <= 20; i++)
-                            {
-                                <option value="@i">@(i.ToString("00")):00</option>
-                            }
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
-                <button type="button" class="btn btn-primary" onclick="addAvailability()">Dodaj</button>
+                <!-- Content will be loaded here -->
             </div>
         </div>
     </div>
@@ -144,43 +170,26 @@
 
 @section Scripts {
     <script>
-        function addAvailability() {
-            const date = document.getElementById('date').value;
-            const hour = document.getElementById('hour').value;
+        // Automatically close alert after 5 seconds
+        $(document).ready(function() {
+            setTimeout(function() {
+                $(".alert").alert('close');
+            }, 5000);
+        });
 
-            fetch('/Teacher/AddAvailability', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                },
-                body: JSON.stringify({ date, hour })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                }
-            })
-            .catch(error => console.error('Error:', error));
+        function showLessonDetails(lessonId) {
+            $.get(`/Teacher/LessonDetails/${lessonId}`, function(data) {
+                $('#lessonDetailsModal .modal-body').html(data);
+                $('#lessonDetailsModal').modal('show');
+            });
         }
 
-        function removeAvailability(id) {
-            if (confirm('Czy na pewno chcesz usunąć ten termin?')) {
-                fetch('/Teacher/RemoveAvailability/' + id, {
-                    method: 'POST',
-                    headers: {
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-            }
+        function updateLessonStatus(lessonId, status) {
+            $.post('/Teacher/UpdateLessonStatus', { id: lessonId, status: status }, function(response) {
+                if (response.success) {
+                    location.reload();
+                }
+            });
         }
     </script>
 } 

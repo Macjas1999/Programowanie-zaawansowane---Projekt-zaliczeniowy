@@ -1,0 +1,48 @@
+@model Projekt_zaliczeniowy.Models.Lesson
+
+<div class="lesson-details">
+    <div class="mb-3">
+        <h6>Przedmiot</h6>
+        <p>@Model.Name</p>
+    </div>
+
+    <div class="mb-3">
+        <h6>Uczeń</h6>
+        <p>@Model.Student.UserName</p>
+    </div>
+
+    <div class="mb-3">
+        <h6>Data i godzina</h6>
+        <p>@Model.StartTime.ToString("dd.MM.yyyy HH:mm") - @Model.EndTime.ToString("HH:mm")</p>
+    </div>
+
+    <div class="mb-3">
+        <h6>Status</h6>
+        <p>@Model.Status</p>
+    </div>
+
+    <div class="mb-3">
+        <h6>Cena</h6>
+        <p>@Model.Price PLN</p>
+    </div>
+
+    @if (Model.Notes != null)
+    {
+        <div class="mb-3">
+            <h6>Notatki</h6>
+            <p>@Model.Notes</p>
+        </div>
+    }
+
+    @if (Model.Status == LessonStatus.Scheduled)
+    {
+        <div class="mt-4">
+            <button class="btn btn-success" onclick="updateLessonStatus(@Model.Id, 'Completed')">
+                Oznacz jako zakończoną
+            </button>
+            <button class="btn btn-danger" onclick="updateLessonStatus(@Model.Id, 'Cancelled')">
+                Anuluj lekcję
+            </button>
+        </div>
+    }
+</div> 

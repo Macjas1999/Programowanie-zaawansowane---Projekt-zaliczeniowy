@@ -2,171 +2,116 @@
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @{
+    ViewData["Title"] = "Panel ucznia";
 }
 
 @model Projekt_zaliczeniowy.Models.ViewModels.StudentDashboardViewModel
 
 <div class="container">
-    <h2 class="mb-4">Panel Ucznia</h2>
+    <h2 class="mb-4">Panel ucznia</h2>
 
     <div class="row">
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-calendar-check me-2"></i>Nadchodzące Lekcje
-                    </h5>
+        <!-- Nadchodzące lekcje -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Nadchodzące lekcje</h5>
                 </div>
                 <div class="card-body">
-                    @if (!Model.UpcomingLessons.Any())
+                    @if (Model.UpcomingLessons != null && Model.UpcomingLessons.Any())
                     {
-                        <p class="text-muted">Brak nadchodzących lekcji</p>
-                    }
-                    else
-                    {
-                        <div class="list-group list-group-flush">
+                        <div class="list-group">
                             @foreach (var lesson in Model.UpcomingLessons)
                             {
                                 <div class="list-group-item">
-                                    <h6 class="mb-1">@lesson.Name</h6>
-                                    <p class="mb-1">
-                                        <small class="text-muted">
-                                            <i class="fas fa-user me-1"></i>@lesson.Teacher.Email
-                                        </small>
-                                    </p>
-                                    <p class="mb-0">
-                                        <small class="text-muted">
-                                            <i class="fas fa-clock me-1"></i>@lesson.StartTime.ToString("dd/MM/yyyy HH:mm")
-                                        </small>
-                                    </p>
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">@lesson.Name</h6>
+                                        <small>@lesson.StartTime.ToString("dd.MM.yyyy HH:mm")</small>
+                                    </div>
+                                    <p class="mb-1">Nauczyciel: @lesson.Teacher.UserName</p>
+                                    <small>Status: @lesson.Status</small>
+                                    <button class="btn btn-sm btn-info float-end" 
+                                            onclick="showLessonDetails(@lesson.Id)">
+                                        Szczegóły
+                                    </button>
                                 </div>
                             }
                         </div>
                     }
-                    <div class="mt-3">
-                        <a asp-action="Calendar" class="btn btn-primary btn-sm">
-                            <i class="fas fa-calendar me-1"></i>Zobacz kalendarz
-                        </a>
-                    </div>
+                    else
+                    {
+                        <p class="text-muted">Brak nadchodzących lekcji</p>
+                    }
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-history me-2"></i>Ostatnie Lekcje
-                    </h5>
+        <!-- Płatności oczekujące -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">Płatności oczekujące</h5>
                 </div>
                 <div class="card-body">
-                    @if (!Model.RecentLessons.Any())
+                    @if (Model.PendingPayments != null && Model.PendingPayments.Any())
                     {
-                        <p class="text-muted">Brak historii lekcji</p>
-                    }
-                    else
-                    {
-                        <div class="list-group list-group-flush">
-                            @foreach (var lesson in Model.RecentLessons)
-                            {
-                                <div class="list-group-item">
-                                    <h6 class="mb-1">@lesson.Name</h6>
-                                    <p class="mb-1">
-                                        <small class="text-muted">
-                                            <i class="fas fa-user me-1"></i>@lesson.Teacher.Email
-                                        </small>
-                                    </p>
-                                    <p class="mb-0">
-                                        <small class="text-muted">
-                                            <i class="fas fa-clock me-1"></i>@lesson.StartTime.ToString("dd/MM/yyyy HH:mm")
-                                        </small>
-                                    </p>
-                                </div>
-                            }
-                        </div>
-                    }
-                    <div class="mt-3">
-                        <a asp-action="Sessions" class="btn btn-primary btn-sm">
-                            <i class="fas fa-list me-1"></i>Zobacz wszystkie
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-money-bill me-2"></i>Oczekujące Płatności
-                    </h5>
-                </div>
-                <div class="card-body">
-                    @if (!Model.PendingPayments.Any())
-                    {
-                        <p class="text-muted">Brak oczekujących płatności</p>
-                    }
-                    else
-                    {
-                        <div class="list-group list-group-flush">
+                        <div class="list-group">
                             @foreach (var payment in Model.PendingPayments)
                             {
                                 <div class="list-group-item">
-                                    <h6 class="mb-1">@payment.Lesson.Name</h6>
-                                    <p class="mb-1">
-                                        <small class="text-muted">
-                                            <i class="fas fa-money-bill me-1"></i>@payment.Amount.ToString("C")
-                                        </small>
-                                    </p>
-                                    <p class="mb-0">
-                                        <small class="text-muted">
-                                            <i class="fas fa-clock me-1"></i>Termin: @payment.PaymentDate.ToString("dd/MM/yyyy")
-                                        </small>
-                                    </p>
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">@payment.Lesson.Name</h6>
+                                        <span class="badge bg-warning">@payment.Amount PLN</span>
+                                    </div>
+                                    <p class="mb-1">Data: @payment.Lesson.StartTime.ToString("dd.MM.yyyy HH:mm")</p>
+                                    <small>Nauczyciel: @payment.Lesson.Teacher.UserName</small>
                                 </div>
                             }
                         </div>
                     }
-                    <div class="mt-3">
-                        <a asp-action="Payments" class="btn btn-primary btn-sm">
-                            <i class="fas fa-credit-card me-1"></i>Zarządzaj płatnościami
-                        </a>
-                    </div>
+                    else
+                    {
+                        <p class="text-muted">Brak oczekujących płatności</p>
+                    }
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row">
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-search me-2"></i>Znajdź Korepetytora
-                    </h5>
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">Szybkie akcje</h5>
                 </div>
                 <div class="card-body">
-                    <p>Przeglądaj dostępnych korepetytorów i zarezerwuj lekcje.</p>
-                    <a asp-action="GetTeacherSubjects" class="btn btn-primary">
-                        <i class="fas fa-search me-1"></i>Szukaj korepetytora
-                    </a>
+                    <div class="d-flex gap-3">
+                        <a asp-controller="Student" asp-action="Calendar" class="btn btn-primary">
+                            <i class="fas fa-calendar-alt"></i> Kalendarz zajęć
+                        </a>
+                        <a asp-controller="Student" asp-action="FindTutor" class="btn btn-success">
+                            <i class="fas fa-search"></i> Znajdź korepetytora
+                        </a>
+                        <a asp-controller="Payment" asp-action="Index" class="btn btn-warning">
+                            <i class="fas fa-credit-card"></i> Płatności
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-star me-2"></i>Moje Oceny
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <p>Przeglądaj swoje oceny i postępy w nauce.</p>
-                    <a href="#" class="btn btn-primary">
-                        <i class="fas fa-chart-line me-1"></i>Zobacz postępy
-                    </a>
-                </div>
+<!-- Modal szczegółów lekcji -->
+<div class="modal fade" id="lessonDetailsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Szczegóły lekcji</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded here -->
             </div>
         </div>
     </div>
@@ -174,8 +119,11 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            // Initialize any necessary JavaScript functionality
-        });
+        function showLessonDetails(lessonId) {
+            $.get(`/Student/LessonDetails/${lessonId}`, function(data) {
+                $('#lessonDetailsModal .modal-body').html(data);
+                $('#lessonDetailsModal').modal('show');
+            });
+        }
     </script>
 }

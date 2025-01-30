@@ -1,0 +1,129 @@
+@model IEnumerable<Projekt_zaliczeniowy.Models.Payment>
+
+@{
+    ViewData["Title"] = "Płatności";
+}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Płatności</h2>
+            <p class="text-muted">Lista wszystkich płatności za lekcje</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    @if (!Model.Any())
+                    {
+                        <p class="text-center text-muted">Brak płatności do wyświetlenia</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Data lekcji</th>
+                                        <th>Nauczyciel</th>
+                                        <th>Kwota</th>
+                                        <th>Status</th>
+                                        <th>Data płatności</th>
+                                        <th>Akcje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var payment in Model)
+                                    {
+                                        <tr>
+                                            <td>@payment.Lesson.StartTime.ToString("dd.MM.yyyy HH:mm")</td>
+                                            <td>@payment.Lesson.Teacher.FirstName @payment.Lesson.Teacher.LastName</td>
+                                            <td>@payment.Amount PLN</td>
+                                            <td>
+                                                @switch (payment.Status)
+                                                {
+                                                    case PaymentStatus.Pending:
+                                                        <span class="badge bg-warning">Oczekująca</span>
+                                                        break;
+                                                    case PaymentStatus.Completed:
+                                                        <span class="badge bg-success">Opłacona</span>
+                                                        break;
+                                                    case PaymentStatus.Failed:
+                                                        <span class="badge bg-danger">Nieudana</span>
+                                                        break;
+                                                    case PaymentStatus.Refunded:
+                                                        <span class="badge bg-info">Zwrócona</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>
+                                                @(payment.Status == PaymentStatus.Pending ? "-" : payment.PaymentDate.ToString("dd.MM.yyyy HH:mm"))
+                                            </td>
+                                            <td>
+                                                @if (payment.Status == PaymentStatus.Pending)
+                                                {
+                                                    <a asp-action="Process" asp-route-id="@payment.Id" 
+                                                       class="btn btn-primary btn-sm">
+                                                        <i class="fas fa-credit-card"></i> Opłać
+                                                    </a>
+                                                }
+                                                <a href="#" onclick="showPaymentDetails(@payment.Id)" 
+                                                   class="btn btn-info btn-sm">
+                                                    <i class="fas fa-info-circle"></i> Szczegóły
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal szczegółów płatności -->
+<div class="modal fade" id="paymentDetailsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Szczegóły płatności</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showPaymentDetails(paymentId) {
+            $('#paymentDetailsModal').modal('show');
+            $.get(`/Payment/Details/${paymentId}`, function(data) {
+                $('#paymentDetailsModal .modal-body').html(data);
+            });
+        }
+    </script>
+} 

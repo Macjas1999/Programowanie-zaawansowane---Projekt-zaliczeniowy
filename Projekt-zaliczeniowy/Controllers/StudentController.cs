@@ -81,22 +81,10 @@ namespace Projekt_zaliczeniowy.Controllers
             return View(lessons);
         }
 
-        public async Task<IActionResult> Payments()
+        [HttpGet]
+        public IActionResult Payments()
         {
-            var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
-            if (currentUser == null)
-            {
-                return NotFound();
-            }
-
-            var payments = await _context.Payments
-                .Include(p => p.Lesson)
-                .ThenInclude(l => l.Teacher)
-                .Where(p => p.Lesson.StudentId == currentUser.Id)
-                .OrderByDescending(p => p.PaymentDate)
-                .ToListAsync();
-
-            return View(payments);
+            return RedirectToAction("Index", "Payment");
         }
 
         public async Task<IActionResult> Calendar(DateTime? date)
@@ -298,6 +286,25 @@ namespace Projekt_zaliczeniowy.Controllers
                 _logger.LogError(ex, "Błąd podczas anulowania lekcji");
                 return BadRequest("Wystąpił błąd podczas anulowania lekcji.");
             }
+        }
+
+        public async Task<IActionResult> FindTutor()
+        {
+            var tutors = await _context.Users
+                .Where(u => u.UserType == UserType.Korepetytor)
+                .Select(t => new TutorViewModel
+                {
+                    Id = t.Id,
+                    Name = $"{t.FirstName} {t.LastName}",
+                    Email = t.Email,
+                    Availabilities = _context.Availabilities
+                        .Where(a => a.TutorId == t.Id && !a.IsBooked && a.StartTime > DateTime.Now)
+                        .OrderBy(a => a.StartTime)
+                        .ToList()
+                })
+                .ToListAsync();
+
+            return View(tutors);
         }
     }
 

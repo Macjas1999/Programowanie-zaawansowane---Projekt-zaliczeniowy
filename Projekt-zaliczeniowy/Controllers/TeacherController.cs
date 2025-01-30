@@ -76,6 +76,7 @@ namespace Projekt_zaliczeniowy.Controllers
 
             var lessons = await _context.Lessons
                 .Include(l => l.Student)
+                .Include(l => l.Payment)
                 .Where(l => l.TeacherId == currentUser.Id &&
                            l.StartTime >= startOfWeek &&
                            l.StartTime < endOfWeek)
@@ -90,6 +91,7 @@ namespace Projekt_zaliczeniowy.Controllers
                 .ToListAsync();
 
             ViewBag.Availabilities = availabilities;
+            ViewBag.SelectedDate = selectedDate;
             return View(lessons);
         }
 

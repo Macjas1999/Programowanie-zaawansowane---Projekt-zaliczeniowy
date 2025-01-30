@@ -1,37 +1,70 @@
 ﻿@model Projekt_zaliczeniowy.Models.Payment
-@using Projekt_zaliczeniowy.Models
 
-<h2>Przetwarzanie płatności</h2>
+@{
+    ViewData["Title"] = "Opłać lekcję";
+}
 
-<form asp-action="Process" method="post">
-    <div class="form-group">
-        <label>Szczegóły lekcji</label>
-        <div class="form-control-static">
-            <p>Data: @Model.Lesson.StartTime.ToShortDateString()</p>
-            <p>Godzina: @Model.Lesson.StartTime.ToShortTimeString() - @Model.Lesson.EndTime.ToShortTimeString()</p>
-            <p>Korepetytor: @Model.Lesson.Teacher.UserName</p>
-            <p>Uczeń: @Model.Lesson.Student.UserName</p>
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h2>Opłać lekcję</h2>
+            <p class="text-muted">Realizacja płatności za lekcję</p>
         </div>
     </div>
 
-    <div class="form-group">
-        <label asp-for="Amount" class="control-label">Kwota</label>
-        <input asp-for="Amount" class="form-control" value="@Model.Lesson.Price" readonly />
-    </div>
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-    <div class="form-group">
-        <label asp-for="Method" class="control-label">Metoda płatności</label>
-        <select asp-for="Method" class="form-control" required>
-            <option value="@PaymentMethod.CreditCard">Karta kredytowa</option>
-            <option value="@PaymentMethod.BankTransfer">Przelew bankowy</option>
-            <option value="@PaymentMethod.Cash">Gotówka</option>
-        </select>
-    </div>
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Szczegóły płatności</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Data lekcji:</h6>
+                            <p>@Model.Lesson.StartTime.ToString("dd.MM.yyyy HH:mm")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Nauczyciel:</h6>
+                            <p>@Model.Lesson.Teacher.FirstName @Model.Lesson.Teacher.LastName</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Kwota do zapłaty:</h6>
+                            <p class="text-primary fw-bold">@Model.Amount PLN</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Status:</h6>
+                            <span class="badge bg-warning">Oczekująca</span>
+                        </div>
+                    </div>
 
-    <input type="hidden" asp-for="Lesson.Id" />
-
-    <div class="mt-3">
-        <button type="submit" class="btn btn-primary">Zapłać</button>
-        <a asp-controller="Lesson" asp-action="Details" asp-route-id="@Model.Lesson.Id" class="btn btn-secondary">Powrót</a>
+                    <form asp-action="ProcessPayment" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            W tej wersji aplikacji płatność zostanie oznaczona jako zrealizowana bez faktycznej transakcji.
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-credit-card"></i> Potwierdź płatność
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Powrót do listy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-</form>
+</div>
