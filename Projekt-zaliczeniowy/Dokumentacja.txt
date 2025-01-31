@@ -19,6 +19,13 @@ b) Uczeń:
 - Dokonywanie płatności za lekcje
 - Anulowanie zarezerwowanych lekcji
 
+c) Administrator:
+- Zarządzanie kontami użytkowników (blokowanie/odblokowywanie/usuwanie)
+- Weryfikacja kont korepetytorów
+- Przeglądanie wszystkich lekcji w systemie
+- Konfiguracja parametrów systemu
+- Dostęp do logów systemowych
+-
 3. GŁÓWNE FUNKCJE
 
 Kalendarz:
@@ -54,6 +61,12 @@ Dla Ucznia:
 3. Wybierz dostępny termin w kalendarzu
 4. Dokonaj rezerwacji i płatności
 5. Zarządzaj swoimi lekcjami przez panel główny
+
+Dla Administratora:
+1. Zaloguj się na konto administratora
+2. Przejdź do panelu administracyjnego
+3. Zarządzaj użytkownikami i systemem poprzez dostępne moduły
+4. Monitoruj aktywność systemu
 
 5. WSKAZÓWKI TECHNICZNE
 
