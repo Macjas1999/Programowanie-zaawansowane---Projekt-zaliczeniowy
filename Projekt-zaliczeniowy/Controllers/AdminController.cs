@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Projekt_zaliczeniowy.Data;
 using Projekt_zaliczeniowy.Models;
 using Projekt_zaliczeniowy.Models.ViewModels;
@@ -43,7 +45,7 @@ namespace Projekt_zaliczeniowy.Controllers
             return View(viewModel);
         }
 
-        public async Task<IActionResult> Users()
+        public async Task<IActionResult> Users(string r = "wszyscy")
         {
             var users = await _userManager.Users
                 .Select(u => new UserViewModel
@@ -54,15 +56,21 @@ namespace Projekt_zaliczeniowy.Controllers
                     LastName = u.LastName,
                     UserType = u.UserType
                 })
-                .ToListAsync();
+			.ToListAsync();
 
-            foreach (var user in users)
+			List<UserViewModel> filteredUsers = (
+                r == "korepetytor"
+                ? users.Where(u => u.UserType == UserType.Korepetytor).ToList()
+                : r == "uzytkownik" 
+                ? users.Where(u => u.UserType == UserType.Uzytkownik).ToList() 
+                : users);
+
+            foreach (var user in filteredUsers)
             {
                 var userObj = await _userManager.FindByIdAsync(user.Id);
                 user.Roles = await _userManager.GetRolesAsync(userObj);
             }
-
-            return View(users);
+            return View(filteredUsers);
         }
 
         public async Task<IActionResult> EditUser(string id)
